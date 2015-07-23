@@ -50,10 +50,12 @@ TIM_HandleTypeDef TimHandle;
 uint32_t uwPrescalerValue = 0;
 
 /* Private function prototypes -----------------------------------------------*/
+void TOUCHThread(void const *n);
+void GUIThread(void const *n);
+
 static void SystemClock_Config(void);
 void BSP_Background(void);
 
-extern void MainTask(void);
 static void CPU_CACHE_Enable(void);
 
 /* Private functions ---------------------------------------------------------*/
@@ -120,6 +122,10 @@ int main(void)
 
   /* Init the STemWin GUI Library */
   BSP_SDRAM_Init(); /* Initializes the SDRAM device */
+  BSP_LCD_Init();
+  /* Initialize the Touch screen */
+  BSP_TS_Init(420, 272);
+
   __HAL_RCC_CRC_CLK_ENABLE(); /* Enable the CRC Module */
   GUI_Init();
 
@@ -128,15 +134,84 @@ int main(void)
   GUI_Initialized = 1;
 
   /* Activate the use of memory device feature */
-  WM_SetCreateFlags(WM_CF_MEMDEV);
+  //WM_SetCreateFlags(WM_CF_MEMDEV);
 
-  osThreadDef(uSDThread, MainTask, osPriorityNormal, 0, 8 * configMINIMAL_STACK_SIZE);
-  osThreadCreate(osThread(uSDThread), NULL);
+  osThreadDef(GUI_Thread, GUIThread, osPriorityNormal, 0, 2048);
+  osThreadCreate(osThread(GUI_Thread), NULL);
+
+  /* Create Touch screen Timer */
+  osThreadDef(TOUCH_Thread, TOUCHThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+  osThreadCreate(osThread(TOUCH_Thread), NULL);
 
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
   for( ;; );
+}
+
+/**
+  * @brief  Read the coordinate of the point touched and assign their
+  *         value to the variables u32_TSXCoordinate and u32_TSYCoordinate
+  * @param  None
+  * @retval None
+  */
+void TOUCHThread(void const *n)
+{
+	static GUI_PID_STATE TS_State = {0, 0, 0, 0};
+
+	while(1){
+		__IO TS_StateTypeDef  ts;
+		uint16_t xDiff, yDiff;
+
+		BSP_TS_GetState((TS_StateTypeDef *)&ts);
+
+		if((ts.touchX[0] >= LCD_GetXSize()) ||(ts.touchY[0] >= LCD_GetYSize()) )
+		{
+			ts.touchX[0] = 0;
+			ts.touchY[0] = 0;
+			ts.touchDetected =0;
+		}
+
+		xDiff = (TS_State.x > ts.touchX[0]) ? (TS_State.x - ts.touchX[0]) : (ts.touchX[0] - TS_State.x);
+		yDiff = (TS_State.y > ts.touchY[0]) ? (TS_State.y - ts.touchY[0]) : (ts.touchY[0] - TS_State.y);
+
+
+		if((TS_State.Pressed != ts.touchDetected ) ||
+				(xDiff > 30 )||
+				(yDiff > 30))
+		{
+			TS_State.Pressed = ts.touchDetected;
+			TS_State.Layer = 0;
+			if(ts.touchDetected)
+			{
+				TS_State.x = ts.touchX[0];
+				TS_State.y = ts.touchY[0];
+				GUI_TOUCH_StoreStateEx(&TS_State);
+			}
+			else
+			{
+				GUI_TOUCH_StoreStateEx(&TS_State);
+				TS_State.x = 0;
+				TS_State.y = 0;
+			}
+		}
+
+		osDelay(50);
+	}
+}
+
+void GUIThread(void const *n) {
+
+	while(1){
+		GUI_SelectLayer(0);
+
+		WM_HWIN hWin = CreateWindow();
+		GUI_ExecCreatedDialog(hWin);
+
+		GUI_Clear();
+		GUI_Delay(1000);
+	}
+
 }
 
 /**

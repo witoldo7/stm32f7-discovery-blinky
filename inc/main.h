@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    STemWin/STemWin_HelloWorld/Inc/main.h 
+  * @file    STemWin/STemWin_HelloWorld/Inc/main.h
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015
@@ -46,6 +46,8 @@
 /* EVAL includes component */
 #include "stm32746g_discovery.h"
 #include "stm32746g_discovery_sdram.h"
+#include "stm32746g_discovery_ts.h"
+#include "stm32746g_discovery_lcd.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

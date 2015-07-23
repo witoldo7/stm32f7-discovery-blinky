@@ -33,7 +33,7 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */ 
+  */
 
 /* Includes ------------------------------------------------------------------*/
 #include "LCDConf.h"
@@ -46,24 +46,24 @@
 /** @defgroup LCD CONFIGURATION
 * @brief This file contains the LCD Configuration
 * @{
-*/ 
+*/
 
 /** @defgroup LCD CONFIGURATION_Private_TypesDefinitions
 * @{
-*/ 
+*/
 /**
 * @}
-*/ 
+*/
 
 /** @defgroup LCD CONFIGURATION_Private_Defines
 * @{
-*/ 
+*/
 #undef  LCD_SWAP_XY
 #undef  LCD_MIRROR_Y
 
 #undef  LCD_SWAP_RB
 
-#define LCD_SWAP_XY  1 
+#define LCD_SWAP_XY  1
 #define LCD_MIRROR_Y 1
 
 #define LCD_SWAP_RB  1
@@ -71,7 +71,7 @@
 #define XSIZE_PHYS 480
 #define YSIZE_PHYS 272
 
-#define NUM_BUFFERS  3 /* Number of multiple buffers to be used */
+#define NUM_BUFFERS  1 /* Number of multiple buffers to be used */
 #define NUM_VSCREENS 1 /* Number of virtual screens to be used */
 
 #define BK_COLOR GUI_DARKBLUE
@@ -112,25 +112,25 @@
 
 /**
 * @}
-*/ 
+*/
 
 
 /** @defgroup LCD CONFIGURATION_Private_Macros
 * @{
-*/ 
+*/
 /**
 * @}
-*/ 
+*/
 
 
 /** @defgroup LCD CONFIGURATION_Private_Variables
 * @{
 */
-LTDC_HandleTypeDef                   hltdc;  
+LTDC_HandleTypeDef                   hltdc;
 static DMA2D_HandleTypeDef           hdma2d;
 static LCD_LayerPropTypedef          layer_prop[GUI_NUM_LAYERS];
 
-static const LCD_API_COLOR_CONV * apColorConvAPI[] = 
+static const LCD_API_COLOR_CONV * apColorConvAPI[] =
 {
   COLOR_CONVERSION_0,
 #if GUI_NUM_LAYERS > 1
@@ -140,15 +140,15 @@ static const LCD_API_COLOR_CONV * apColorConvAPI[] =
 
 /**
 * @}
-*/ 
+*/
 
 /** @defgroup LCD CONFIGURATION_Private_FunctionPrototypes
 * @{
-*/ 
+*/
 static void     DMA2D_CopyBuffer         (U32 LayerIndex, void * pSrc, void * pDst, U32 xSize, U32 ySize, U32 OffLineSrc, U32 OffLineDst);
 static void     DMA2D_FillBuffer(U32 LayerIndex, void * pDst, U32 xSize, U32 ySize, U32 OffLine, U32 ColorIndex);
-static void     LCD_LL_Init(void); 
-static void     LCD_LL_LayerInit(U32 LayerIndex); 
+static void     LCD_LL_Init(void);
+static void     LCD_LL_LayerInit(U32 LayerIndex);
 
 static void     CUSTOM_CopyBuffer(int LayerIndex, int IndexSrc, int IndexDst);
 static void     CUSTOM_CopyRect(int LayerIndex, int x0, int y0, int x1, int y1, int xSize, int ySize);
@@ -157,14 +157,14 @@ static void     CUSTOM_DrawBitmap32bpp(int LayerIndex, int x, int y, U8 const * 
 static U32      GetBufferSize(U32 LayerIndex);
 /**
 * @}
-*/ 
+*/
 
 /** @defgroup LCD CONFIGURATION_Private_Functions
 * @{
-*/ 
+*/
 /**
   * @brief  Return Pixel format for a given layer
-  * @param  LayerIndex : Layer Index 
+  * @param  LayerIndex : Layer Index
   * @retval Status ( 0 : 0k , 1: error)
   */
 static inline U32 LCD_LL_GetPixelformat(U32 LayerIndex)
@@ -172,31 +172,31 @@ static inline U32 LCD_LL_GetPixelformat(U32 LayerIndex)
   if (LayerIndex == 0)
   {
     return LTDC_PIXEL_FORMAT_ARGB8888;
-  } 
+  }
   else
   {
     return LTDC_PIXEL_FORMAT_ARGB1555;
-  } 
+  }
 }
 /*******************************************************************************
                        LTDC and DMA2D BSP Routines
 *******************************************************************************/
 /**
-  * @brief DMA2D MSP Initialization 
-  *        This function configures the hardware resources used in this example: 
+  * @brief DMA2D MSP Initialization
+  *        This function configures the hardware resources used in this example:
   *           - Peripheral's clock enable
-  *           - Peripheral's GPIO Configuration  
+  *           - Peripheral's GPIO Configuration
   * @param hdma2d: DMA2D handle pointer
   * @retval None
   */
 void HAL_DMA2D_MspInit(DMA2D_HandleTypeDef *hdma2d)
-{  
+{
   /* Enable peripheral */
-  __HAL_RCC_DMA2D_CLK_ENABLE();   
+  __HAL_RCC_DMA2D_CLK_ENABLE();
 }
 
 /**
-  * @brief DMA2D MSP De-Initialization 
+  * @brief DMA2D MSP De-Initialization
   *        This function frees the hardware resources used in this example:
   *          - Disable the Peripheral's clock
   * @param hdma2d: DMA2D handle pointer
@@ -206,28 +206,28 @@ void HAL_DMA2D_MspDeInit(DMA2D_HandleTypeDef *hdma2d)
 {
   /* Enable DMA2D reset state */
   __HAL_RCC_DMA2D_FORCE_RESET();
-  
-  /* Release DMA2D from reset state */ 
+
+  /* Release DMA2D from reset state */
   __HAL_RCC_DMA2D_RELEASE_RESET();
 }
 
 /**
-  * @brief LTDC MSP Initialization 
-  *        This function configures the hardware resources used in this example: 
+  * @brief LTDC MSP Initialization
+  *        This function configures the hardware resources used in this example:
   *           - Peripheral's clock enable
-  *           - Peripheral's GPIO Configuration  
+  *           - Peripheral's GPIO Configuration
   * @param hltdc: LTDC handle pointer
   * @retval None
   */
 void HAL_LTDC_MspInit(LTDC_HandleTypeDef *hltdc)
-{  
+{
   GPIO_InitTypeDef gpio_init_structure;
   static RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
-  
+
   /* Enable the LTDC clocks */
   __HAL_RCC_LTDC_CLK_ENABLE();
-  
-  
+
+
   /* LCD clock configuration */
   /* PLLSAI_VCO Input = HSE_VALUE/PLL_M = 1 Mhz */
   /* PLLSAI_VCO Output = PLLSAI_VCO Input * PLLSAIN = 429 Mhz */
@@ -237,23 +237,23 @@ void HAL_LTDC_MspInit(LTDC_HandleTypeDef *hltdc)
   PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
   PeriphClkInitStruct.PLLSAI.PLLSAIR = 5;
   PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_4;
-  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);   
-  
-  
+  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
+
+
   /* Enable GPIOs clock */
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOI_CLK_ENABLE();
   __HAL_RCC_GPIOJ_CLK_ENABLE();
   __HAL_RCC_GPIOK_CLK_ENABLE();
-  
+
   /*** LTDC Pins configuration ***/
   /* GPIOE configuration */
   gpio_init_structure.Pin       = GPIO_PIN_4;
   gpio_init_structure.Mode      = GPIO_MODE_AF_PP;
   gpio_init_structure.Pull      = GPIO_NOPULL;
   gpio_init_structure.Speed     = GPIO_SPEED_FAST;
-  gpio_init_structure.Alternate = GPIO_AF14_LTDC;  
+  gpio_init_structure.Alternate = GPIO_AF14_LTDC;
   HAL_GPIO_Init(GPIOE, &gpio_init_structure);
 
   /* GPIOG configuration */
@@ -269,22 +269,22 @@ void HAL_LTDC_MspInit(LTDC_HandleTypeDef *hltdc)
   gpio_init_structure.Alternate = GPIO_AF14_LTDC;
   HAL_GPIO_Init(GPIOI, &gpio_init_structure);
 
-  /* GPIOJ configuration */  
+  /* GPIOJ configuration */
   gpio_init_structure.Pin       = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | \
                                   GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7 | \
                                   GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | \
                                   GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
   gpio_init_structure.Mode      = GPIO_MODE_AF_PP;
   gpio_init_structure.Alternate = GPIO_AF14_LTDC;
-  HAL_GPIO_Init(GPIOJ, &gpio_init_structure);  
+  HAL_GPIO_Init(GPIOJ, &gpio_init_structure);
 
-  /* GPIOK configuration */  
+  /* GPIOK configuration */
   gpio_init_structure.Pin       = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_4 | \
                                   GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
   gpio_init_structure.Mode      = GPIO_MODE_AF_PP;
   gpio_init_structure.Alternate = GPIO_AF14_LTDC;
   HAL_GPIO_Init(GPIOK, &gpio_init_structure);
-  
+
   /* LCD_DISP GPIO configuration */
   gpio_init_structure.Pin       = GPIO_PIN_12;     /* LCD_DISP pin has to be manually controlled */
   gpio_init_structure.Mode      = GPIO_MODE_OUTPUT_PP;
@@ -297,13 +297,13 @@ void HAL_LTDC_MspInit(LTDC_HandleTypeDef *hltdc)
 
   /* Set LTDC Interrupt to the lowest priority */
   HAL_NVIC_SetPriority(LTDC_IRQn, 0xE, 0);
-  
+
   /* Enable LTDC Interrupt */
   HAL_NVIC_EnableIRQ(LTDC_IRQn);
 }
 
 /**
-  * @brief LTDC MSP De-Initialization 
+  * @brief LTDC MSP De-Initialization
   *        This function frees the hardware resources used in this example:
   *          - Disable the Peripheral's clock
   * @param hltdc: LTDC handle pointer
@@ -314,8 +314,8 @@ void HAL_LTDC_MspDeInit(LTDC_HandleTypeDef *hltdc)
   /* Reset peripherals */
   /* Enable LTDC reset state */
   __HAL_RCC_LTDC_FORCE_RESET();
-  
-  /* Release LTDC from reset state */ 
+
+  /* Release LTDC from reset state */
   __HAL_RCC_LTDC_RELEASE_RESET();
 }
 
@@ -331,16 +331,16 @@ void HAL_LTDC_LineEvenCallback(LTDC_HandleTypeDef *hltdc) {
 
   for (layer = 0; layer < GUI_NUM_LAYERS; layer++)
   {
-    if (layer_prop[layer].pending_buffer >= 0) 
+    if (layer_prop[layer].pending_buffer >= 0)
     {
       /* Calculate address of buffer to be used  as visible frame buffer */
       Addr = layer_prop[layer].address + \
              layer_prop[layer].xSize * layer_prop[layer].ySize * layer_prop[layer].pending_buffer * layer_prop[layer].BytesPerPixel;
-      
+
       __HAL_LTDC_LAYER(hltdc, layer)->CFBAR = Addr;
-     
+
       __HAL_LTDC_RELOAD_CONFIG(hltdc);
-      
+
       /* Notify STemWin that buffer is used */
       GUI_MULTIBUF_ConfirmEx(layer, layer_prop[layer].pending_buffer);
 
@@ -348,7 +348,7 @@ void HAL_LTDC_LineEvenCallback(LTDC_HandleTypeDef *hltdc) {
       layer_prop[layer].pending_buffer = -1;
     }
   }
-  
+
   HAL_LTDC_ProgramLineEvent(hltdc, 0);
 }
 
@@ -361,15 +361,15 @@ void HAL_LTDC_LineEvenCallback(LTDC_HandleTypeDef *hltdc) {
   * @param  None
   * @retval None
   */
-void LCD_X_Config(void) 
+void LCD_X_Config(void)
 {
   U32 i;
 
   LCD_LL_Init ();
-    
+
   /* At first initialize use of multiple buffers on demand */
 #if (NUM_BUFFERS > 1)
-    for (i = 0; i < GUI_NUM_LAYERS; i++) 
+    for (i = 0; i < GUI_NUM_LAYERS; i++)
     {
       GUI_MULTIBUF_ConfigEx(i, NUM_BUFFERS);
     }
@@ -377,7 +377,7 @@ void LCD_X_Config(void)
 
   /* Set display driver and color conversion for 1st layer */
   GUI_DEVICE_CreateAndLink(DISPLAY_DRIVER_0, COLOR_CONVERSION_0, 0, 0);
-  
+
   /* Set size of 1st layer */
   if (LCD_GetSwapXYEx(0)) {
     LCD_SetSizeEx (0, YSIZE_PHYS, XSIZE_PHYS);
@@ -387,10 +387,10 @@ void LCD_X_Config(void)
     LCD_SetVSizeEx(0, XSIZE_PHYS, YSIZE_PHYS * NUM_VSCREENS);
   }
   #if (GUI_NUM_LAYERS > 1)
-    
+
     /* Set display driver and color conversion for 2nd layer */
     GUI_DEVICE_CreateAndLink(DISPLAY_DRIVER_1, COLOR_CONVERSION_1, 0, 1);
-    
+
     /* Set size of 2nd layer */
     if (LCD_GetSwapXYEx(1)) {
       LCD_SetSizeEx (1, YSIZE_PHYS, XSIZE_PHYS);
@@ -400,21 +400,21 @@ void LCD_X_Config(void)
       LCD_SetVSizeEx(1, XSIZE_PHYS, YSIZE_PHYS * NUM_VSCREENS);
     }
   #endif
-  
-    
+
+
     /*Initialize GUI Layer structure */
     layer_prop[0].address = LCD_LAYER0_FRAME_BUFFER;
-    
+
 #if (GUI_NUM_LAYERS > 1)
-    layer_prop[1].address = LCD_LAYER1_FRAME_BUFFER; 
+    layer_prop[1].address = LCD_LAYER1_FRAME_BUFFER;
 #endif
-       
+
    /* Setting up VRam address and custom functions for CopyBuffer-, CopyRect- and FillRect operations */
-  for (i = 0; i < GUI_NUM_LAYERS; i++) 
+  for (i = 0; i < GUI_NUM_LAYERS; i++)
   {
 
     layer_prop[i].pColorConvAPI = (LCD_API_COLOR_CONV *)apColorConvAPI[i];
-     
+
     layer_prop[i].pending_buffer = -1;
 
     /* Set VRAM address */
@@ -431,7 +431,7 @@ void LCD_X_Config(void)
     /* Set up drawing routine for 32bpp bitmap using DMA2D */
     if (LCD_LL_GetPixelformat(i) == LTDC_PIXEL_FORMAT_ARGB8888) {
      LCD_SetDevFunc(i, LCD_DEVFUNC_DRAWBMP_32BPP, (void(*)(void))CUSTOM_DrawBitmap32bpp);     /* Set up drawing routine for 32bpp bitmap using DMA2D. Makes only sense with ARGB8888 */
-    }    
+    }
   }
 }
 
@@ -441,61 +441,61 @@ void LCD_X_Config(void)
   *         the display controller. Please note that the commands marked with
   *         'optional' are not cogently required and should only be adapted if
   *         the display controller supports these features
-  * @param  LayerIndex: Index of layer to be configured 
+  * @param  LayerIndex: Index of layer to be configured
   * @param  Cmd       :Please refer to the details in the switch statement below
   * @param  pData     :Pointer to a LCD_X_DATA structure
   * @retval Status (-1 : Error,  0 : Ok)
   */
-int LCD_X_DisplayDriver(unsigned LayerIndex, unsigned Cmd, void * pData) 
+int LCD_X_DisplayDriver(unsigned LayerIndex, unsigned Cmd, void * pData)
 {
   int r = 0;
   U32 addr;
   int xPos, yPos;
   U32 Color;
-    
-  switch (Cmd) 
+
+  switch (Cmd)
   {
-  case LCD_X_INITCONTROLLER: 
+  case LCD_X_INITCONTROLLER:
     LCD_LL_LayerInit(LayerIndex);
     break;
 
-  case LCD_X_SETORG: 
+  case LCD_X_SETORG:
     addr = layer_prop[LayerIndex].address + ((LCD_X_SETORG_INFO *)pData)->yPos * layer_prop[LayerIndex].xSize * layer_prop[LayerIndex].BytesPerPixel;
     HAL_LTDC_SetAddress(&hltdc, addr, LayerIndex);
     break;
 
-  case LCD_X_SHOWBUFFER: 
+  case LCD_X_SHOWBUFFER:
     layer_prop[LayerIndex].pending_buffer = ((LCD_X_SHOWBUFFER_INFO *)pData)->Index;
     break;
 
-  case LCD_X_SETLUTENTRY: 
+  case LCD_X_SETLUTENTRY:
     HAL_LTDC_ConfigCLUT(&hltdc, (uint32_t *)&(((LCD_X_SETLUTENTRY_INFO *)pData)->Color), 1, LayerIndex);
     break;
 
-  case LCD_X_ON: 
+  case LCD_X_ON:
     __HAL_LTDC_ENABLE(&hltdc);
     break;
 
-  case LCD_X_OFF: 
+  case LCD_X_OFF:
     __HAL_LTDC_DISABLE(&hltdc);
     break;
-    
+
   case LCD_X_SETVIS:
     if(((LCD_X_SETVIS_INFO *)pData)->OnOff  == ENABLE )
     {
-      __HAL_LTDC_LAYER_ENABLE(&hltdc, LayerIndex); 
+      __HAL_LTDC_LAYER_ENABLE(&hltdc, LayerIndex);
     }
     else
     {
-      __HAL_LTDC_LAYER_DISABLE(&hltdc, LayerIndex); 
+      __HAL_LTDC_LAYER_DISABLE(&hltdc, LayerIndex);
     }
-    __HAL_LTDC_RELOAD_CONFIG(&hltdc); 
+    __HAL_LTDC_RELOAD_CONFIG(&hltdc);
     break;
-    
-  case LCD_X_SETPOS: 
-    HAL_LTDC_SetWindowPosition(&hltdc, 
-                               ((LCD_X_SETPOS_INFO *)pData)->xPos, 
-                               ((LCD_X_SETPOS_INFO *)pData)->yPos, 
+
+  case LCD_X_SETPOS:
+    HAL_LTDC_SetWindowPosition(&hltdc,
+                               ((LCD_X_SETPOS_INFO *)pData)->xPos,
+                               ((LCD_X_SETPOS_INFO *)pData)->yPos,
                                LayerIndex);
     break;
 
@@ -517,7 +517,7 @@ int LCD_X_DisplayDriver(unsigned LayerIndex, unsigned Cmd, void * pData)
     }
     else
     {
-      HAL_LTDC_DisableColorKeying(&hltdc, LayerIndex);      
+      HAL_LTDC_DisableColorKeying(&hltdc, LayerIndex);
     }
     break;
 
@@ -526,7 +526,7 @@ int LCD_X_DisplayDriver(unsigned LayerIndex, unsigned Cmd, void * pData)
     Color = ((((LCD_X_SETCHROMA_INFO *)pData)->ChromaMin & 0xFF0000) >> 16) |\
              (((LCD_X_SETCHROMA_INFO *)pData)->ChromaMin & 0x00FF00) |\
             ((((LCD_X_SETCHROMA_INFO *)pData)->ChromaMin & 0x0000FF) << 16);
-    
+
     HAL_LTDC_ConfigColorKeying(&hltdc, Color, LayerIndex);
     break;
 
@@ -541,17 +541,17 @@ int LCD_X_DisplayDriver(unsigned LayerIndex, unsigned Cmd, void * pData)
   * @param  LayerIndex : layer Index.
   * @retval None
   */
-static void LCD_LL_LayerInit(U32 LayerIndex) 
+static void LCD_LL_LayerInit(U32 LayerIndex)
 {
   LTDC_LayerCfgTypeDef             layer_cfg;
-  
-  if (LayerIndex < GUI_NUM_LAYERS) 
-  { 
+
+  if (LayerIndex < GUI_NUM_LAYERS)
+  {
     /* Layer configuration */
     layer_cfg.WindowX0 = 0;
     layer_cfg.WindowX1 = XSIZE_PHYS;
     layer_cfg.WindowY0 = 0;
-    layer_cfg.WindowY1 = YSIZE_PHYS; 
+    layer_cfg.WindowY1 = YSIZE_PHYS;
     layer_cfg.PixelFormat = LCD_LL_GetPixelformat(LayerIndex);
     layer_cfg.FBStartAdress = ((uint32_t)0xC0000000);
     layer_cfg.Alpha = 255;
@@ -563,15 +563,15 @@ static void LCD_LL_LayerInit(U32 LayerIndex)
     layer_cfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
     layer_cfg.ImageWidth = XSIZE_PHYS;
     layer_cfg.ImageHeight = YSIZE_PHYS;
-    HAL_LTDC_ConfigLayer(&hltdc, &layer_cfg, LayerIndex);  
-    
+    HAL_LTDC_ConfigLayer(&hltdc, &layer_cfg, LayerIndex);
+
     /* Enable LUT on demand */
-    if (LCD_GetBitsPerPixelEx(LayerIndex) <= 8) 
+    if (LCD_GetBitsPerPixelEx(LayerIndex) <= 8)
     {
       /* Enable usage of LUT for all modes with <= 8bpp*/
       HAL_LTDC_EnableCLUT(&hltdc, LayerIndex);
-    } 
-  } 
+    }
+  }
 }
 
 /**
@@ -579,11 +579,11 @@ static void LCD_LL_LayerInit(U32 LayerIndex)
   * @param  LayerIndex : layer Index.
   * @retval None
   */
-static void LCD_LL_Init(void) 
-{ 
+static void LCD_LL_Init(void)
+{
   /* DeInit */
   HAL_LTDC_DeInit(&hltdc);
-  
+
   /* Set LCD Timings */
   hltdc.Init.HorizontalSync = 40;
   hltdc.Init.VerticalSync = 9;
@@ -593,37 +593,37 @@ static void LCD_LL_Init(void)
   hltdc.Init.AccumulatedActiveW = 533;
   hltdc.Init.TotalHeigh = 285;
   hltdc.Init.TotalWidth = 565;
-  
+
   /* background value */
   hltdc.Init.Backcolor.Blue = 0;
   hltdc.Init.Backcolor.Green = 0;
-  hltdc.Init.Backcolor.Red = 0;  
-  
+  hltdc.Init.Backcolor.Red = 0;
+
   /* Polarity */
   hltdc.Init.HSPolarity = LTDC_HSPOLARITY_AL;
-  hltdc.Init.VSPolarity = LTDC_VSPOLARITY_AL; 
-  hltdc.Init.DEPolarity = LTDC_DEPOLARITY_AL;  
+  hltdc.Init.VSPolarity = LTDC_VSPOLARITY_AL;
+  hltdc.Init.DEPolarity = LTDC_DEPOLARITY_AL;
   hltdc.Init.PCPolarity = LTDC_PCPOLARITY_IPC;
   hltdc.Instance = LTDC;
-  
+
   HAL_LTDC_Init(&hltdc);
   HAL_LTDC_ProgramLineEvent(&hltdc, 0);
-  
+
   /* Enable dithering */
   HAL_LTDC_EnableDither(&hltdc);
-    
-   /* Configure the DMA2D default mode */ 
+
+   /* Configure the DMA2D default mode */
   hdma2d.Init.Mode         = DMA2D_R2M;
   hdma2d.Init.ColorMode    = DMA2D_RGB565;
-  hdma2d.Init.OutputOffset = 0x0;     
+  hdma2d.Init.OutputOffset = 0x0;
 
-  hdma2d.Instance          = DMA2D; 
+  hdma2d.Instance          = DMA2D;
 
   if(HAL_DMA2D_Init(&hdma2d) != HAL_OK)
   {
     while (1);
   }
-  
+
   /* Assert display enable LCD_DISP pin */
   HAL_GPIO_WritePin(GPIOI, GPIO_PIN_12, GPIO_PIN_SET);
 
@@ -635,7 +635,7 @@ static void LCD_LL_Init(void)
 
 /**
   * @brief  Return Pixel format for a given layer
-  * @param  LayerIndex : Layer Index 
+  * @param  LayerIndex : Layer Index
   * @retval Status ( 0 : 0k , 1: error)
   */
 static void DMA2D_CopyBuffer(U32 LayerIndex, void * pSrc, void * pDst, U32 xSize, U32 ySize, U32 OffLineSrc, U32 OffLineDst)
@@ -643,24 +643,24 @@ static void DMA2D_CopyBuffer(U32 LayerIndex, void * pSrc, void * pDst, U32 xSize
   U32 PixelFormat;
 
   PixelFormat = LCD_LL_GetPixelformat(LayerIndex);
-  DMA2D->CR      = 0x00000000UL | (1 << 9);  
-  	
+  DMA2D->CR      = 0x00000000UL | (1 << 9);
+
   /* Set up pointers */
-  DMA2D->FGMAR   = (U32)pSrc;                       
-  DMA2D->OMAR    = (U32)pDst;                       
-  DMA2D->FGOR    = OffLineSrc;                      
-  DMA2D->OOR     = OffLineDst; 
-  
-  /* Set up pixel format */  
-  DMA2D->FGPFCCR = PixelFormat;  
-  
+  DMA2D->FGMAR   = (U32)pSrc;
+  DMA2D->OMAR    = (U32)pDst;
+  DMA2D->FGOR    = OffLineSrc;
+  DMA2D->OOR     = OffLineDst;
+
+  /* Set up pixel format */
+  DMA2D->FGPFCCR = PixelFormat;
+
   /*  Set up size */
-  DMA2D->NLR     = (U32)(xSize << 16) | (U16)ySize; 
-  
-  DMA2D->CR     |= DMA2D_CR_START;   
- 
+  DMA2D->NLR     = (U32)(xSize << 16) | (U16)ySize;
+
+  DMA2D->CR     |= DMA2D_CR_START;
+
   /* Wait until transfer is done */
-  while (DMA2D->CR & DMA2D_CR_START) 
+  while (DMA2D->CR & DMA2D_CR_START)
   {
   }
 }
@@ -672,36 +672,36 @@ static void DMA2D_CopyBuffer(U32 LayerIndex, void * pSrc, void * pDst, U32 xSize
   * @param  xSize:       X size
   * @param  ySize:       Y size
   * @param  OffLine:     offset after each line
-  * @param  ColorIndex:  color to be used.           
+  * @param  ColorIndex:  color to be used.
   * @retval None.
   */
-static void DMA2D_FillBuffer(U32 LayerIndex, void * pDst, U32 xSize, U32 ySize, U32 OffLine, U32 ColorIndex) 
+static void DMA2D_FillBuffer(U32 LayerIndex, void * pDst, U32 xSize, U32 ySize, U32 OffLine, U32 ColorIndex)
 {
 
   U32 PixelFormat;
 
   PixelFormat = LCD_LL_GetPixelformat(LayerIndex);
-	
+
   /* Set up mode */
-  DMA2D->CR      = 0x00030000UL | (1 << 9);        
-  DMA2D->OCOLR   = ColorIndex;                     
+  DMA2D->CR      = 0x00030000UL | (1 << 9);
+  DMA2D->OCOLR   = ColorIndex;
 
   /* Set up pointers */
-  DMA2D->OMAR    = (U32)pDst;                      
+  DMA2D->OMAR    = (U32)pDst;
 
   /* Set up offsets */
-  DMA2D->OOR     = OffLine;                        
+  DMA2D->OOR     = OffLine;
 
   /* Set up pixel format */
-  DMA2D->OPFCCR  = PixelFormat;                    
+  DMA2D->OPFCCR  = PixelFormat;
 
   /*  Set up size */
   DMA2D->NLR     = (U32)(xSize << 16) | (U16)ySize;
-    
-  DMA2D->CR     |= DMA2D_CR_START; 
-  
+
+  DMA2D->CR     |= DMA2D_CR_START;
+
   /* Wait until transfer is done */
-  while (DMA2D->CR & DMA2D_CR_START) 
+  while (DMA2D->CR & DMA2D_CR_START)
   {
   }
 }
@@ -709,10 +709,10 @@ static void DMA2D_FillBuffer(U32 LayerIndex, void * pDst, U32 xSize, U32 ySize, 
 
 /**
   * @brief  Get buffer size
-  * @param  LayerIndex : Layer Index           
+  * @param  LayerIndex : Layer Index
   * @retval None.
   */
-static U32 GetBufferSize(U32 LayerIndex) 
+static U32 GetBufferSize(U32 LayerIndex)
 {
   U32 BufferSize;
 
@@ -724,7 +724,7 @@ static U32 GetBufferSize(U32 LayerIndex)
   * @brief  Customized copy buffer
   * @param  LayerIndex : Layer Index
   * @param  IndexSrc:    index source
-  * @param  IndexDst:    index destination           
+  * @param  IndexDst:    index destination
   * @retval None.
   */
 static void CUSTOM_CopyBuffer(int LayerIndex, int IndexSrc, int IndexDst) {
@@ -744,11 +744,11 @@ static void CUSTOM_CopyBuffer(int LayerIndex, int IndexSrc, int IndexDst) {
   * @param  y0:          Y0 position
   * @param  x1:          X1 position
   * @param  y1:          Y1 position
-  * @param  xSize:       X size. 
-  * @param  ySize:       Y size.            
+  * @param  xSize:       X size.
+  * @param  ySize:       Y size.
   * @retval None.
   */
-static void CUSTOM_CopyRect(int LayerIndex, int x0, int y0, int x1, int y1, int xSize, int ySize) 
+static void CUSTOM_CopyRect(int LayerIndex, int x0, int y0, int x1, int y1, int xSize, int ySize)
 {
   U32 BufferSize, AddrSrc, AddrDst;
 
@@ -765,22 +765,22 @@ static void CUSTOM_CopyRect(int LayerIndex, int x0, int y0, int x1, int y1, int 
   * @param  y0:          Y0 position
   * @param  x1:          X1 position
   * @param  y1:          Y1 position
-  * @param  PixelIndex:  Pixel index.             
+  * @param  PixelIndex:  Pixel index.
   * @retval None.
   */
-static void CUSTOM_FillRect(int LayerIndex, int x0, int y0, int x1, int y1, U32 PixelIndex) 
+static void CUSTOM_FillRect(int LayerIndex, int x0, int y0, int x1, int y1, U32 PixelIndex)
 {
   U32 BufferSize, AddrDst;
   int xSize, ySize;
 
 
-  if (GUI_GetDrawMode() == GUI_DM_XOR) 
-  {		
+  if (GUI_GetDrawMode() == GUI_DM_XOR)
+  {
     LCD_SetDevFunc(LayerIndex, LCD_DEVFUNC_FILLRECT, NULL);
     LCD_FillRect(x0, y0, x1, y1);
     LCD_SetDevFunc(LayerIndex, LCD_DEVFUNC_FILLRECT, (void(*)(void))CUSTOM_FillRect);
-  } 
-  else 
+  }
+  else
   {
     xSize = x1 - x0 + 1;
     ySize = y1 - y0 + 1;
