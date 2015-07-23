@@ -184,7 +184,14 @@ ifeq ($(USE_EMWIN),1)
 INCPATHS += \
 	$(EMWIN_PATH)/inc
 
-SOURCES_C += $(EMWIN_PATH)/OS/GUI_X.c
+ifeq ($(OS_SUPPORT),USE_FREERTOS)
+ SOURCES_C += $(EMWIN_PATH)/OS/GUI_X_OS.c
+ EMWIN_LIB = _STemWin528_CM7_OS_GCC
+ DEFINES += -DOS_SUPPORT
+else
+ SOURCES_C += $(EMWIN_PATH)/OS/GUI_X.c
+ EMWIN_LIB = _STemWin528_CM7_GCC
+endif
 endif
 
 ################
@@ -247,7 +254,7 @@ $(PROJECT).hex: $(PROJECT).elf
 	$(OBJCOPY) -O ihex $(PROJECT).elf $(PROJECT).hex
 
 $(PROJECT).elf: $(OBJS)
-	$(LD) $(OBJS) $(LDFLAGS) -o $(PROJECT).elf -l_STemWin528_CM7_GCC
+	$(LD) $(OBJS) $(LDFLAGS) -o $(PROJECT).elf -l$(EMWIN_LIB)
 	$(SIZE) -A $(PROJECT).elf
 
 $(PROJECT).bin: $(PROJECT).elf

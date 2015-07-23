@@ -27,9 +27,9 @@ Full source code is available at: www.segger.com
 
 We appreciate your understanding and fairness.
 ----------------------------------------------------------------------
-File        : GUIConf.h
-Purpose     : Configures emWins abilities, fonts etc.
-----------------------------------------------------------------------
+File        : GUIConf.c
+Purpose     : Display controller initialization
+---------------------------END-OF-HEADER------------------------------
 */
 
 /**
@@ -42,8 +42,8 @@ Purpose     : Configures emWins abilities, fonts etc.
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -51,46 +51,41 @@ Purpose     : Configures emWins abilities, fonts etc.
   ******************************************************************************
   */
 
-#ifndef GUICONF_H
-#define GUICONF_H
+#include "GUI.h"
 
 /*********************************************************************
 *
-*       Multi layer/display support
+*       Defines
+*
+**********************************************************************
 */
-#define GUI_NUM_LAYERS            2    // Maximum number of available layers
+//
+// Define the available number of bytes available for the GUI
+//
+#define GUI_NUMBYTES  (1024) *  150
+
+U32 aMemory[GUI_NUMBYTES / 4];
 
 /*********************************************************************
 *
-*       Multi tasking support
+*       Public code
+*
+**********************************************************************
 */
-#ifdef OS_SUPPORT
- #define GUI_OS                    (1)  // Compile with multitasking support
-#else
- #define GUI_OS                    (0)
-#endif
-
 /*********************************************************************
 *
-*       Configuration of touch support
-*/
-#ifndef   GUI_SUPPORT_TOUCH
-  #define GUI_SUPPORT_TOUCH       (1)  // Support touchscreen
-#endif
-
-/*********************************************************************
+*       GUI_X_Config
 *
-*       Default font
+* Purpose:
+*   Called during the initialization process in order to set up the
+*   available memory for the GUI.
 */
-#define GUI_DEFAULT_FONT          &GUI_Font6x8
+void GUI_X_Config(void) 
+{
+  //
+  // Assign memory to STemWin
+  //
+  GUI_ALLOC_AssignMemory(aMemory, GUI_NUMBYTES);
+}
 
-/*********************************************************************
-*
-*         Configuration of available packages
-*/
-#define GUI_SUPPORT_MOUSE             (1)    /* Support a mouse */
-#define GUI_WINSUPPORT                (1)    /* Use window manager */
-#define GUI_SUPPORT_MEMDEV            (1)    /* Memory device package available */
-#define GUI_SUPPORT_DEVICES           (1)    /* Enable use of device pointers */
-
-#endif  /* Avoid multiple inclusion */
+/*************************** End of file ****************************/
