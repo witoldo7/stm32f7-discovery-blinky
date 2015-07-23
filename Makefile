@@ -88,6 +88,8 @@ INCLUDES += -I Drivers/CMSIS/Device/ST/STM32F7xx/Include
 INCLUDES += -I Drivers/STM32F7xx_HAL_Driver/Inc
 INCLUDES += -I Drivers/BSP/STM32746G-Discovery
 
+INCLUDES += $(addprefix -I ,$(INCPATHS))
+
 DEFINES = -DSTM32 -DSTM32F7 -DSTM32F746xx -DSTM32F746NGHx -DSTM32F746G_DISCO -DUSE_STM32746G_DISCOVERY
 
 
@@ -101,6 +103,23 @@ SOURCES_C += \
  $(FATFS)/drivers/sd_diskio.c			\
  $(FATFS)/option/unicode.c				\
  $(FATFS)/option/syscall.c
+
+
+RTOS_PATH = ./Middlewares/Third_Party/FreeRTOS/Source
+
+SOURCES_C += $(sort \
+ $(patsubst %.c,%.o,$(wildcard $(RTOS_PATH)/*.c)))
+ 
+SOURCES_C += \
+	$(RTOS_PATH)/portable/GCC/ARM_CM7/r0p1/port.c	\
+	$(RTOS_PATH)/portable/MemMang/heap_2.c			\
+	$(RTOS_PATH)/CMSIS_RTOS/cmsis_os.c
+ 
+INCPATHS	 += 						\
+ $(RTOS_PATH)/include					\
+ $(RTOS_PATH)/portable/GCC/ARM_CM7/r0p1	\
+ $(RTOS_PATH)/CMSIS_RTOS
+
 ################
 # Compiler/Assembler/Linker/etc
 
