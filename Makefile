@@ -66,13 +66,19 @@ PROJECT = blinky
 #OS_SUPPORT		= BARE_METAL
 OS_SUPPORT		= USE_FREERTOS
 
+# Use LwIP?
+#LWIP_SUPPORT	= USE_LWIP
+
+#LOG_SUPPORT = USE_LCD_LOG
+
 ################
 # Sources
 
 SOURCES_S = Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/gcc/startup_stm32f746xx.s
 
 SOURCES_C = $(wildcard src/*.c)
-SOURCES_C += $(wildcard sys/*.c)
+SOURCES_C += sys/_sbrk.c
+SOURCES_C += sys/stubs.c
 #SOURCES_C += Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/system_stm32f7xx.c
 SOURCES_C += $(wildcard Drivers/BSP/STM32746G-Discovery/*.c)
 SOURCES_C += $(wildcard Drivers/STM32F7xx_HAL_Driver/Src/*.c)
@@ -96,7 +102,12 @@ INCLUDES += $(addprefix -I ,$(INCPATHS))
 
 DEFINES = -DSTM32 -DSTM32F7 -DSTM32F746xx -DSTM32F746NGHx -DSTM32F746G_DISCO -DUSE_STM32746G_DISCOVERY
 
-
+ifeq ($(LOG_SUPPORT),USE_LCD_LOG)
+ INCPATHS  += Utilities/Log
+ SOURCES_C += Utilities/Log/lcd_log.c
+else
+ SOURCES_C += sys/_io.c
+endif
 
 FATFS = ./Middlewares/Third_Party/FatFs/src
 
@@ -125,6 +136,34 @@ INCPATHS	 += 						\
  $(RTOS_PATH)/portable/GCC/ARM_CM7/r0p1	\
  $(RTOS_PATH)/CMSIS_RTOS
 
+endif
+
+ifeq ($(LWIP_SUPPORT),USE_LWIP)
+LwIP_PATH = ./Middlewares/Third_Party/LwIP
+
+INCPATHS	 += 						\
+ $(LwIP_PATH)/system					\
+ $(LwIP_PATH)/src/include				\
+ $(LwIP_PATH)/src/include/ipv4			\
+ $(LwIP_PATH)/src/include				\
+ $(LwIP_PATH)/src/include/netif			\
+ $(LwIP_PATH)/src/include/posix			\
+ $(LwIP_PATH)/src/include/posix/sys
+
+SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/api/*.c)))
+SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/core/*.c)))
+SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/core/ipv4/*.c)))
+SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/core/snmp/*.c)))
+SOURCES_C += $(LwIP_PATH)/src/netif/etharp.c
+SOURCES_C += $(LwIP_PATH)/src/netif/slipif.c
+SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/netif/ppp/*.c)))
+
+ifeq ($(OS_SUPPORT),USE_FREERTOS)
+ INCPATHS  += $(LwIP_PATH)/system/OS
+ SOURCES_C += $(LwIP_PATH)/system/OS/sys_arch.c
+else
+ INCPATHS  += $(LwIP_PATH)/system/noOS
+endif
 endif
 
 ################
