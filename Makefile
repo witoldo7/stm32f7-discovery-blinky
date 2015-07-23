@@ -88,8 +88,19 @@ INCLUDES += -I Drivers/CMSIS/Device/ST/STM32F7xx/Include
 INCLUDES += -I Drivers/STM32F7xx_HAL_Driver/Inc
 INCLUDES += -I Drivers/BSP/STM32746G-Discovery
 
-DEFINES = -DSTM32 -DSTM32F7 -DSTM32F746xx -DSTM32F746NGHx -DSTM32F746G_DISCO
+DEFINES = -DSTM32 -DSTM32F7 -DSTM32F746xx -DSTM32F746NGHx -DSTM32F746G_DISCO -DUSE_STM32746G_DISCOVERY
 
+
+
+FATFS = ./Middlewares/Third_Party/FatFs/src
+
+INCLUDES += -I $(FATFS) -I $(FATFS)/drivers
+
+SOURCES_C += \
+ $(wildcard $(FATFS)/*.c)				\
+ $(FATFS)/drivers/sd_diskio.c			\
+ $(FATFS)/option/unicode.c				\
+ $(FATFS)/option/syscall.c
 ################
 # Compiler/Assembler/Linker/etc
 
