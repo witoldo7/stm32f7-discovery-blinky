@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.1.2 - Copyright (C) 2014 Real Time Engineers Ltd.
+    FreeRTOS V8.1.2 - Copyright (C) 2014 Real Time Engineers Ltd. 
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -24,10 +24,10 @@
     the terms of the GNU General Public License (version 2) as published by the
     Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
 
-    >>!   NOTE: The modification to the GPL is included to allow you to     !<<
-    >>!   distribute a combined work that includes FreeRTOS without being   !<<
-    >>!   obliged to provide the source code for proprietary components     !<<
-    >>!   outside of the FreeRTOS kernel.                                   !<<
+    >>! NOTE: The modification to the GPL is included to allow you to distribute
+    >>! a combined work that includes FreeRTOS without being obliged to provide
+    >>! the source code for proprietary components outside of the FreeRTOS
+    >>! kernel.
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -91,9 +91,13 @@
 #define configUSE_TICK_HOOK			0
 #define configCPU_CLOCK_HZ			( SystemCoreClock )
 #define configTICK_RATE_HZ			( ( TickType_t ) 1000 )
-#define configMAX_PRIORITIES			( 8 )
+#define configMAX_PRIORITIES			(  7 )
 #define configMINIMAL_STACK_SIZE		( ( uint16_t ) 128 )
-#define configTOTAL_HEAP_SIZE			( ( size_t ) ( 15 * 1024 ) )
+#if defined(__GNUC__)
+ #define configTOTAL_HEAP_SIZE			( ( size_t ) ( 25 * 1024 ) )
+#else
+ #define configTOTAL_HEAP_SIZE			( ( size_t ) ( 20 * 1024 ) )
+#endif
 #define configMAX_TASK_NAME_LEN			( 16 )
 #define configUSE_TRACE_FACILITY		1
 #define configUSE_16_BIT_TICKS			0
@@ -106,15 +110,14 @@
 #define configUSE_APPLICATION_TASK_TAG	        0
 #define configUSE_COUNTING_SEMAPHORES	        1
 #define configGENERATE_RUN_TIME_STATS	        0
-
-#define configENABLE_BACKWARD_COMPATIBILITY 0
+#define configUSE_STATS_FORMATTING_FUNCTIONS    1
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES 		        0
 #define configMAX_CO_ROUTINE_PRIORITIES        ( 2 )
 
 /* Software timer definitions. */
-#define configUSE_TIMERS			1
+#define configUSE_TIMERS			0
 #define configTIMER_TASK_PRIORITY		( 2 )
 #define configTIMER_QUEUE_LENGTH		10
 #define configTIMER_TASK_STACK_DEPTH	        ( configMINIMAL_STACK_SIZE * 2 )
@@ -124,9 +127,9 @@ to exclude the API function. */
 #define INCLUDE_vTaskPrioritySet		1
 #define INCLUDE_uxTaskPriorityGet		1
 #define INCLUDE_vTaskDelete			1
-#define INCLUDE_vTaskCleanUpResources	        1
-#define INCLUDE_vTaskSuspend			1
-#define INCLUDE_vTaskDelayUntil			1
+#define INCLUDE_vTaskCleanUpResources	        0
+#define INCLUDE_vTaskSuspend			0
+#define INCLUDE_vTaskDelayUntil			0
 #define INCLUDE_vTaskDelay			1
 #define INCLUDE_xTaskGetSchedulerState          1
 
