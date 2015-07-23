@@ -71,6 +71,8 @@ OS_SUPPORT		= USE_FREERTOS
 
 #LOG_SUPPORT = USE_LCD_LOG
 
+USE_EMWIN = 1
+
 ################
 # Sources
 
@@ -100,7 +102,7 @@ INCLUDES += -I Drivers/BSP/STM32746G-Discovery
 
 INCLUDES += $(addprefix -I ,$(INCPATHS))
 
-DEFINES = -DSTM32 -DSTM32F7 -DSTM32F746xx -DSTM32F746NGHx -DSTM32F746G_DISCO -DUSE_STM32746G_DISCOVERY
+DEFINES = -DSTM32 -DSTM32F7 -DSTM32F746xx -DSTM32F746NGHx -DSTM32F746G_DISCO -DUSE_STM32746G_DISCOVERY -D$(OS_SUPPORT)
 
 ifeq ($(LOG_SUPPORT),USE_LCD_LOG)
  INCPATHS  += Utilities/Log
@@ -136,6 +138,10 @@ INCPATHS	 += 						\
  $(RTOS_PATH)/portable/GCC/ARM_CM7/r0p1	\
  $(RTOS_PATH)/CMSIS_RTOS
 
+# Set library PATH
+LIBPATHS     = $(EMWIN_PATH)/Lib
+LIBRARY_DIRS = $(addprefix -L,$(LIBPATHS))
+
 endif
 
 ifeq ($(LWIP_SUPPORT),USE_LWIP)
@@ -163,6 +169,21 @@ ifeq ($(OS_SUPPORT),USE_FREERTOS)
  SOURCES_C += $(LwIP_PATH)/system/OS/sys_arch.c
 else
  INCPATHS  += $(LwIP_PATH)/system/noOS
+endif
+endif
+
+
+EMWIN_PATH = ./Middlewares/ST/STemWin
+
+ifeq ($(USE_EMWIN),1)
+
+INCPATHS += \
+	$(EMWIN_PATH)/inc
+
+ifeq ($(OS_SUPPORT),USE_FREERTOS)
+SOURCES_C += $(EMWIN_PATH)/OS/GUI_X_OS.c
+else
+SOURCES_C += $(EMWIN_PATH)/OS/GUI_X.c
 endif
 endif
 
@@ -209,6 +230,7 @@ LDFLAGS += -Wl,--start-group -lgcc -lm -lc -lg -lstdc++ -lsupc++ -Wl,--end-group
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += -T stm32f7-discovery.ld -L. -Lldscripts
 LDFLAGS += -Xlinker -Map -Xlinker $(PROJECT).map
+LDFLAGS += $(LIBRARY_DIRS)
 
 # Object Copy and dfu generation FLAGS
 OBJCPFLAGS = -O
@@ -225,7 +247,7 @@ $(PROJECT).hex: $(PROJECT).elf
 	$(OBJCOPY) -O ihex $(PROJECT).elf $(PROJECT).hex
 
 $(PROJECT).elf: $(OBJS)
-	$(LD) $(OBJS) $(LDFLAGS) -o $(PROJECT).elf
+	$(LD) $(OBJS) $(LDFLAGS) -o $(PROJECT).elf -l_STemWin528_CM7_OS_GCC
 	$(SIZE) -A $(PROJECT).elf
 
 $(PROJECT).bin: $(PROJECT).elf
