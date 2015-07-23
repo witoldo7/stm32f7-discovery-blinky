@@ -67,11 +67,12 @@ PROJECT = blinky
 
 SOURCES_S = Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/gcc/startup_stm32f746xx.s
 
-SOURCES_C = src/main.c
-SOURCES_C += sys/stubs.c sys/_sbrk.c sys/_io.c
-SOURCES_C += Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/system_stm32f7xx.c
-SOURCES_C += Drivers/BSP/STM32746G-Discovery/stm32746g_discovery.c
-SOURCES_C += Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c
+SOURCES_C = $(wildcard src/*.c)
+SOURCES_C += $(wildcard sys/*.c)
+#SOURCES_C += Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/system_stm32f7xx.c
+SOURCES_C += $(wildcard Drivers/BSP/STM32746G-Discovery/*.c)
+SOURCES_C += $(wildcard Drivers/STM32F7xx_HAL_Driver/Src/*.c)
+SOURCES_C += $(wildcard Drivers/BSP/Components/ft5336/*.c)
 
 SOURCES_CPP =
 
