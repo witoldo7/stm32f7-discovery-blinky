@@ -62,6 +62,10 @@ INSIGHT = $(GDBDIR)/arm-none-eabi-insight
 
 PROJECT = blinky
 
+# Use FreeRTOS?
+#OS_SUPPORT		= BARE_METAL
+OS_SUPPORT		= USE_FREERTOS
+
 ################
 # Sources
 
@@ -104,6 +108,7 @@ SOURCES_C += \
  $(FATFS)/option/unicode.c				\
  $(FATFS)/option/syscall.c
 
+ifeq ($(OS_SUPPORT),USE_FREERTOS)
 
 RTOS_PATH = ./Middlewares/Third_Party/FreeRTOS/Source
 
@@ -119,6 +124,8 @@ INCPATHS	 += 						\
  $(RTOS_PATH)/include					\
  $(RTOS_PATH)/portable/GCC/ARM_CM7/r0p1	\
  $(RTOS_PATH)/CMSIS_RTOS
+
+endif
 
 ################
 # Compiler/Assembler/Linker/etc
