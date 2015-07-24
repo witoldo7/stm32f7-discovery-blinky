@@ -12,6 +12,7 @@ MEMORY
     EXTMEMB1     :   ORIGIN = 0xFFFF0000, LENGTH = 0K
     EXTMEMB2     :   ORIGIN = 0xFFFF0000, LENGTH = 0K
     EXTMEMB3     :   ORIGIN = 0xFFFf0000, LENGTH = 0K
+    QSPI (rx)    :   ORIGIN = 0x90000000, LENGTH = 16M
 }
 
 /* Include main link script. Note: it will be searched in -L paths. */
