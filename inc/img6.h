@@ -12,7 +12,7 @@
 #if defined ( __ICCARM__ )
 #pragma location = ".textqspi"
 #else
-__attribute__((section(".ExtQSPIFlashSection")))
+__attribute__((section(".textqspi")))
 #endif
 const unsigned char img6[261120] =
 {

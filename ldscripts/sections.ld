@@ -394,7 +394,7 @@ SECTIONS
         *(.eb3rodata.*)
     } >EXTMEMB3
 
-	.ExtQSPIFlashSection : { *(.ExtQSPIFlashSection) } >QSPI
+	.textqspi : { *(.textqspi) } >QSPI
 
     /* After that there are only debugging sections. */
 
