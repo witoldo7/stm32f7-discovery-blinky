@@ -217,11 +217,11 @@ MCUFLAGS = -mcpu=cortex-m7 -mlittle-endian
 MCUFLAGS += -mfloat-abi=hard -mfpu=fpv5-sp-d16
 MCUFLAGS += -mthumb
 
-DEBUGFLAGS = -O0 -g -gdwarf-2
-#DEBUGFLAGS = -O2
+#DEBUGFLAGS = -O0 -g -gdwarf-2
+DEBUGFLAGS = -O2
 
 CFLAGS = -c -MMD -MP -std=c11
-CFLAGS += -Wall -Wextra --pedantic
+CFLAGS += -Wall -Wextra --pedantic -Wno-unused-parameter
 
 CFLAGS_EXTRA = -nostartfiles -fdata-sections -ffunction-sections
 CFLAGS_EXTRA += -Wl,--gc-sections -Wl,-Map=$(PROJECT).map
