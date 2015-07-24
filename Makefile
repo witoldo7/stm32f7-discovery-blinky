@@ -4,15 +4,6 @@
 # http://nemuisan.blog.bai.ne.jp				#
 #################################################
 
-# Environment Dependent!!! This Environment assure under WINDOWS !!
-# Throw path into YOUR environments for each Operation Systems.
-
-ifneq (,$(filter $(shell uname),Darwin Linux))
-
-else
-export PATH = %SYSTEMROOT%;$(TOOLDIR)/bin;$(OCDIR);$(DFUDIR);$(MAKEDIR)
-endif
-
 # Toolchain prefix (i.e arm-none-eabi -> arm-none-eabi-gcc.exe)
 ifneq (,$(filter $(shell uname),Darwin Linux))
 TCHAIN  = /usr/local/arm-cs-tools/bin/arm-none-eabi
@@ -73,6 +64,11 @@ OS_SUPPORT		= USE_FREERTOS
 
 USE_EMWIN = 1
 
+
+OUTDIR = ./Build
+OBJS= $(SOURCES_C:%.c=$(OUTDIR)/%.o)  $(SOURCES_CPP:%.cpp=$(OUTDIR)/%.o) $(SOURCES_S:%.s=$(OUTDIR)/%.o)
+DEPS= $(SOURCES_C:%.c=$(OUTDIR)/%.d) $(SOURCES_CPP:$(OUTDIR)/%.cpp=%.d)
+
 ################
 # Sources
 
@@ -89,7 +85,8 @@ SOURCES_C += $(wildcard Drivers/BSP/Components/ft5336/*.c)
 SOURCES_CPP =
 
 SOURCES = $(SOURCES_S) $(SOURCES_C) $(SOURCES_CPP)
-OBJS = $(SOURCES_S:.s=.o) $(SOURCES_C:.c=.o) $(SOURCES_CPP:.cpp=.o)
+
+STATIC_LIB = 
 
 ################
 # Includes and Defines
@@ -129,8 +126,7 @@ ifeq ($(OS_SUPPORT),USE_FREERTOS)
 
 RTOS_PATH = ./Middlewares/Third_Party/FreeRTOS/Source
 
-SOURCES_C += $(sort \
- $(patsubst %.c,%.o,$(wildcard $(RTOS_PATH)/*.c)))
+SOURCES_C += $(wildcard $(RTOS_PATH)/*.c)
  
 SOURCES_C += \
 	$(RTOS_PATH)/portable/GCC/ARM_CM7/r0p1/port.c	\
@@ -160,13 +156,13 @@ INCPATHS	 += 						\
  $(LwIP_PATH)/src/include/posix			\
  $(LwIP_PATH)/src/include/posix/sys
 
-SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/api/*.c)))
-SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/core/*.c)))
-SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/core/ipv4/*.c)))
-SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/core/snmp/*.c)))
+SOURCES_C += $(wildcard $(LwIP_PATH)/src/api/*.c)
+SOURCES_C += $(wildcard $(LwIP_PATH)/src/core/*.c)
+SOURCES_C += $(wildcard $(LwIP_PATH)/src/core/ipv4/*.c)
+SOURCES_C += $(wildcard $(LwIP_PATH)/src/core/snmp/*.c)
 SOURCES_C += $(LwIP_PATH)/src/netif/etharp.c
 SOURCES_C += $(LwIP_PATH)/src/netif/slipif.c
-SOURCES_C += $(sort $(patsubst %.c,%.o,$(wildcard $(LwIP_PATH)/src/netif/ppp/*.c)))
+SOURCES_C += $(wildcard $(LwIP_PATH)/src/netif/ppp/*.c)
 
 ifeq ($(OS_SUPPORT),USE_FREERTOS)
  INCPATHS  += $(LwIP_PATH)/system/OS
@@ -186,11 +182,11 @@ INCPATHS += \
 
 ifeq ($(OS_SUPPORT),USE_FREERTOS)
  SOURCES_C += $(EMWIN_PATH)/OS/GUI_X_OS.c
- EMWIN_LIB = _STemWin528_CM7_OS_GCC
+ STATIC_LIB += -l_STemWin528_CM7_OS_GCC
  DEFINES += -DOS_SUPPORT
 else
  SOURCES_C += $(EMWIN_PATH)/OS/GUI_X.c
- EMWIN_LIB = _STemWin528_CM7_GCC
+ STATIC_LIB += -l_STemWin528_CM7_GCC
 endif
 endif
 
@@ -212,7 +208,8 @@ NM 			= $(TCHAIN)-nm
 READELF 	= $(TCHAIN)-readelf
 SIZE 		= $(TCHAIN)-size
 GDB 		= $(TCHAIN)-gdb
-RM = rm -f
+REMOVE		= $(REMOVAL) -f
+REMOVEDIR 	= $(REMOVAL) -rf
 
 ################
 # Compiler options
@@ -224,7 +221,7 @@ MCUFLAGS += -mthumb
 DEBUGFLAGS = -O0 -g -gdwarf-2
 #DEBUGFLAGS = -O2
 
-CFLAGS = -std=c11
+CFLAGS = -c -MMD -MP -std=c11
 CFLAGS += -Wall -Wextra --pedantic
 
 CFLAGS_EXTRA = -nostartfiles -fdata-sections -ffunction-sections
@@ -241,7 +238,7 @@ LDFLAGS += $(LIBRARY_DIRS)
 
 # Object Copy and dfu generation FLAGS
 OBJCPFLAGS = -O
-OBJDUMPFLAGS = -h -S -C
+OBJDUMPFLAGS = -h -S
 DFU	  = hex2dfu
 DFLAGS = -w
 
@@ -254,7 +251,9 @@ $(PROJECT).hex: $(PROJECT).elf
 	$(OBJCOPY) -O ihex $(PROJECT).elf $(PROJECT).hex
 
 $(PROJECT).elf: $(OBJS)
-	$(LD) $(OBJS) $(LDFLAGS) -o $(PROJECT).elf -l$(EMWIN_LIB)
+	@$(MSGECHO)
+	@$(MSGECHO) $(OBJS)
+	$(LD) $(OBJS) $(LDFLAGS) -o $(PROJECT).elf $(STATIC_LIB)
 	$(SIZE) -A $(PROJECT).elf
 
 $(PROJECT).bin: $(PROJECT).elf
@@ -262,9 +261,34 @@ $(PROJECT).bin: $(PROJECT).elf
 	@$(MSGECHO) Objcopy: $@
 	$(OBJCOPY) $(OBJCPFLAGS) binary $< $@ 
 
-clean:
-	$(RM) $(OBJS) $(PROJECT).elf $(PROJECT).hex $(PROJECT).map $(PROJECT).bin
-	
+$(OUTDIR)/%.o:%.c
+ifneq (,$(filter $(shell uname),Darwin Linux))
+	@if [ ! -e `/usr/bin/dirname $@` ]; then /bin/mkdir -p `/usr/bin/dirname $@`; fi
+else
+	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
+endif
+	@$(MSGECHO) Compile: $<
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
+	@$(MSGECHO)
+$(OUTDIR)/%.o:%.cpp
+ifneq (,$(filter $(shell uname),Darwin Linux))
+	@if [ ! -e `/usr/bin/dirname $@` ]; then /bin/mkdir -p `/usr/bin/dirname $@`; fi
+else
+	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
+endif
+	@$(MSGECHO) Compile: $<
+	$(CPP) $(CXXFLAGS) $(INCLUDES) $< -o $@
+	@$(MSGECHO)
+$(OUTDIR)/%.o:%.s
+ifneq (,$(filter $(shell uname),Darwin Linux))
+	@if [ ! -e `/usr/bin/dirname $@` ]; then /bin/mkdir -p `/usr/bin/dirname $@`; fi
+else
+	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
+endif
+	@$(MSGECHO) Assemble: $<
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
+	@$(MSGECHO)
+
 flash :
 ifneq (,$(filter $(shell uname),Darwin Linux))
 	@echo "Writing $(TARGET).bin"
@@ -273,5 +297,13 @@ else
 	@"$(STLINK_PATH)/ST-LINK_CLI.exe" -c SWD UR -P $(PROJECT).hex 0x08000000
 	@"$(STLINK_PATH)/ST-LINK_CLI.exe" -c SWD UR -Rst
 endif
+
+.PHONY clean:
+	$(REMOVE) $(OBJS)
+	$(REMOVE) $(DEPS)
+	$(REMOVE) $(PROJECT).elf $(PROJECT).hex $(PROJECT).map $(PROJECT).bin
+	$(REMOVEDIR) $(OUTDIR)/*
+
+-include $(DEPS)
 
 # EOF
