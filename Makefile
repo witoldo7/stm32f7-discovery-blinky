@@ -4,10 +4,6 @@
 # http://nemuisan.blog.bai.ne.jp				#
 #################################################
 
-# Environment Dependent!!! This Environment assure under WINDOWS !!
-# Throw path into YOUR environments for each Operation Systems.
-
-
 # Toolchain prefix (i.e arm-none-eabi -> arm-none-eabi-gcc.exe)
 ifneq (,$(filter $(shell uname),Darwin Linux))
 TCHAIN  = /usr/local/arm-cs-tools/bin/arm-none-eabi
@@ -62,14 +58,12 @@ PROJECT = blinky
 OS_SUPPORT		= USE_FREERTOS
 
 # Use LwIP?
-LWIP_SUPPORT	= USE_LWIP
+#LWIP_SUPPORT	= USE_LWIP
 
-LOG_SUPPORT = USE_LCD_LOG
+#LOG_SUPPORT = USE_LCD_LOG
 
+USE_EMWIN = 1
 
-# Object definition
-#OBJS = $(SOURCES_S:.s=.o) $(SOURCES_C:.c=.o) $(SOURCES_CPP:.cpp=.o)
-#DEPS = $(SOURCES_C:.c=.d) $(SOURCES_CPP:.cpp=.d)
 
 OUTDIR = ./Build
 OBJS= $(SOURCES_C:%.c=$(OUTDIR)/%.o)  $(SOURCES_CPP:%.cpp=$(OUTDIR)/%.o) $(SOURCES_S:%.s=$(OUTDIR)/%.o)
@@ -92,7 +86,6 @@ SOURCES_CPP =
 
 SOURCES = $(SOURCES_S) $(SOURCES_C) $(SOURCES_CPP)
 
-
 ################
 # Includes and Defines
 
@@ -105,6 +98,10 @@ INCLUDES += -I Drivers/BSP/STM32746G-Discovery
 INCLUDES += $(addprefix -I ,$(INCPATHS))
 
 DEFINES = -DSTM32 -DSTM32F7 -DSTM32F746xx -DSTM32F746NGHx -DSTM32F746G_DISCO -DUSE_STM32746G_DISCOVERY
+
+ifeq ($(OS_SUPPORT),USE_FREERTOS)
+DEFINES += -D$(OS_SUPPORT)
+endif
 
 ifeq ($(LOG_SUPPORT),USE_LCD_LOG)
  INCPATHS  += Utilities/Log
@@ -139,6 +136,10 @@ INCPATHS	 += 						\
  $(RTOS_PATH)/portable/GCC/ARM_CM7/r0p1	\
  $(RTOS_PATH)/CMSIS_RTOS
 
+# Set library PATH
+LIBPATHS     = $(EMWIN_PATH)/Lib
+LIBRARY_DIRS = $(addprefix -L,$(LIBPATHS))
+
 endif
 
 ifeq ($(LWIP_SUPPORT),USE_LWIP)
@@ -167,6 +168,17 @@ ifeq ($(OS_SUPPORT),USE_FREERTOS)
 else
  INCPATHS  += $(LwIP_PATH)/system/noOS
 endif
+endif
+
+
+EMWIN_PATH = ./Middlewares/ST/STemWin
+
+ifeq ($(USE_EMWIN),1)
+
+INCPATHS += \
+	$(EMWIN_PATH)/inc
+
+SOURCES_C += $(EMWIN_PATH)/OS/GUI_X.c
 endif
 
 ################
@@ -213,6 +225,7 @@ LDFLAGS += -Wl,--start-group -lgcc -lm -lc -lg -lstdc++ -lsupc++ -Wl,--end-group
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += -T stm32f7-discovery.ld -L. -Lldscripts
 LDFLAGS += -Xlinker -Map -Xlinker $(PROJECT).map
+LDFLAGS += $(LIBRARY_DIRS)
 
 # Object Copy and dfu generation FLAGS
 OBJCPFLAGS = -O
