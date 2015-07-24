@@ -86,6 +86,9 @@ SOURCES_CPP =
 
 SOURCES = $(SOURCES_S) $(SOURCES_C) $(SOURCES_CPP)
 
+# Set library PATH
+LIBPATHS     = $(EMWIN_PATH)/Lib
+LIBRARY_DIRS = $(addprefix -L,$(LIBPATHS))
 STATIC_LIB = 
 
 ################
@@ -137,10 +140,6 @@ INCPATHS	 += 						\
  $(RTOS_PATH)/include					\
  $(RTOS_PATH)/portable/GCC/ARM_CM7/r0p1	\
  $(RTOS_PATH)/CMSIS_RTOS
-
-# Set library PATH
-LIBPATHS     = $(EMWIN_PATH)/Lib
-LIBRARY_DIRS = $(addprefix -L,$(LIBPATHS))
 
 endif
 
