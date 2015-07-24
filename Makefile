@@ -86,6 +86,8 @@ SOURCES_CPP =
 
 SOURCES = $(SOURCES_S) $(SOURCES_C) $(SOURCES_CPP)
 
+STATIC_LIB = 
+
 ################
 # Includes and Defines
 
@@ -178,7 +180,14 @@ ifeq ($(USE_EMWIN),1)
 INCPATHS += \
 	$(EMWIN_PATH)/inc
 
-SOURCES_C += $(EMWIN_PATH)/OS/GUI_X.c
+ifeq ($(OS_SUPPORT),USE_FREERTOS)
+ SOURCES_C += $(EMWIN_PATH)/OS/GUI_X_OS.c
+ STATIC_LIB += -l_STemWin528_CM7_OS_GCC
+ DEFINES += -DOS_SUPPORT
+else
+ SOURCES_C += $(EMWIN_PATH)/OS/GUI_X.c
+ STATIC_LIB += -l_STemWin528_CM7_GCC
+endif
 endif
 
 ################
@@ -244,7 +253,7 @@ $(PROJECT).hex: $(PROJECT).elf
 $(PROJECT).elf: $(OBJS)
 	@$(MSGECHO)
 	@$(MSGECHO) $(OBJS)
-	$(LD) $(OBJS) $(LDFLAGS) -o $(PROJECT).elf
+	$(LD) $(OBJS) $(LDFLAGS) -o $(PROJECT).elf $(STATIC_LIB)
 	$(SIZE) -A $(PROJECT).elf
 
 $(PROJECT).bin: $(PROJECT).elf
