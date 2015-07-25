@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    LwIP/LwIP_HTTP_Server_Netconn_RTOS/Src/app_ethernet.c 
+  * @file    LwIP/LwIP_HTTP_Server_Netconn_RTOS/Src/app_ethernet.c
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015
@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -32,6 +32,8 @@
 #include "lwip/dhcp.h"
 #include "app_ethernet.h"
 #include "ethernetif.h"
+
+#include "dns-netconn.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -49,7 +51,7 @@ __IO uint8_t DHCP_state;
   * @param  netif: the network interface
   * @retval None
   */
-void User_notification(struct netif *netif) 
+void User_notification(struct netif *netif)
 {
   if (netif_is_up(netif))
   {
@@ -58,20 +60,20 @@ void User_notification(struct netif *netif)
     DHCP_state = DHCP_START;
 #else
     uint8_t iptxt[20];
-    
+
     sprintf((char*)iptxt, "%d.%d.%d.%d", IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
-    
+
     LCD_UsrLog ("Static IP address: %s\n", iptxt);
 #endif /* USE_DHCP */
   }
   else
-  {  
+  {
 #ifdef USE_DHCP
     /* Update DHCP state machine */
     DHCP_state = DHCP_LINK_DOWN;
 #endif  /* USE_DHCP */
     LCD_UsrLog ("The network cable is not connected \n");
-  } 
+  }
 }
 
 #ifdef USE_DHCP
@@ -87,7 +89,7 @@ void DHCP_thread(void const * argument)
   struct ip_addr netmask;
   struct ip_addr gw;
   uint32_t IPaddress;
-  
+
   for (;;)
   {
     switch (DHCP_state)
@@ -103,30 +105,35 @@ void DHCP_thread(void const * argument)
         LCD_UsrLog ("  State: Looking for DHCP server ...\n");
       }
       break;
-      
+
     case DHCP_WAIT_ADDRESS:
       {
         /* Read the new IP address */
         IPaddress = netif->ip_addr.addr;
-        
-        if (IPaddress!=0) 
+
+        if (IPaddress!=0)
         {
-          DHCP_state = DHCP_ADDRESS_ASSIGNED;	
-          
+          DHCP_state = DHCP_ADDRESS_ASSIGNED;
+
           /* Stop DHCP */
           dhcp_stop(netif);
-          
+
           uint8_t iptab[4];
           uint8_t iptxt[20];
-          
+
           iptab[0] = (uint8_t)(IPaddress >> 24);
           iptab[1] = (uint8_t)(IPaddress >> 16);
           iptab[2] = (uint8_t)(IPaddress >> 8);
           iptab[3] = (uint8_t)(IPaddress);
-          
-          sprintf((char*)iptxt, "%d.%d.%d.%d", iptab[3], iptab[2], iptab[1], iptab[0]);       
-          
-          LCD_UsrLog ("IP address assigned by a DHCP server: %s\n", iptxt);  
+
+          sprintf((char*)iptxt, "%d.%d.%d.%d", iptab[3], iptab[2], iptab[1], iptab[0]);
+
+          LCD_UsrLog ("IP address assigned by a DHCP server: %s\n", iptxt);
+
+
+          //----------------------------------------------------------------------------------DNS resolver
+          dns_test();
+
         }
         else
         {
@@ -134,18 +141,18 @@ void DHCP_thread(void const * argument)
           if (netif->dhcp->tries > MAX_DHCP_TRIES)
           {
             DHCP_state = DHCP_TIMEOUT;
-            
+
             /* Stop DHCP */
             dhcp_stop(netif);
-            
+
             /* Static address used */
             IP4_ADDR(&ipaddr, IP_ADDR0 ,IP_ADDR1 , IP_ADDR2 , IP_ADDR3 );
             IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
             IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
             netif_set_addr(netif, &ipaddr , &netmask, &gw);
-            
+
             uint8_t iptxt[20];
-            
+
             sprintf((char*)iptxt, "%d.%d.%d.%d", IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
             LCD_UsrLog ("DHCP timeout !!\n");
             LCD_UsrLog ("Static IP address  : %s\n", iptxt);
@@ -153,10 +160,10 @@ void DHCP_thread(void const * argument)
         }
       }
       break;
-      
+
     default: break;
     }
-    
+
     /* wait 250 ms */
     osDelay(250);
   }
