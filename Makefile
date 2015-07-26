@@ -1,7 +1,8 @@
 #################################################
-# MAKEFILE For STM32F4xxx Devices 				#
+# MAKEFILE For STM32F7xxx Devices 				#
 # (c) 20120630 Nemui Trinomius					#
 # http://nemuisan.blog.bai.ne.jp				#
+# Configured for STM32F7 by SpiralRay			#
 #################################################
 
 # Toolchain prefix (i.e arm-none-eabi -> arm-none-eabi-gcc.exe)
@@ -217,11 +218,11 @@ MCUFLAGS = -mcpu=cortex-m7 -mlittle-endian
 MCUFLAGS += -mfloat-abi=hard -mfpu=fpv5-sp-d16
 MCUFLAGS += -mthumb
 
-DEBUGFLAGS = -O0 -g -gdwarf-2
-#DEBUGFLAGS = -O2
+#DEBUGFLAGS = -O0 -g -gdwarf-2
+DEBUGFLAGS = -O2
 
 CFLAGS = -c -MMD -MP -std=c11
-CFLAGS += -Wall -Wextra --pedantic
+CFLAGS += -Wall -Wextra --pedantic -Wno-unused-parameter
 
 CFLAGS_EXTRA = -nostartfiles -fdata-sections -ffunction-sections
 CFLAGS_EXTRA += -Wl,--gc-sections -Wl,-Map=$(PROJECT).map
