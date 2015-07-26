@@ -1,7 +1,8 @@
 #################################################
-# MAKEFILE For STM32F4xxx Devices 				#
+# MAKEFILE For STM32F7xxx Devices 				#
 # (c) 20120630 Nemui Trinomius					#
 # http://nemuisan.blog.bai.ne.jp				#
+# Configured for STM32F7 by SpiralRay			#
 #################################################
 
 # Toolchain prefix (i.e arm-none-eabi -> arm-none-eabi-gcc.exe)

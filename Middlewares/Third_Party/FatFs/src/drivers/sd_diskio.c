@@ -31,6 +31,10 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+
+/* DMA usage */
+#define SD_USE_DMA
+
 /* Block Size in Bytes */
 #define BLOCK_SIZE                512
 
@@ -111,10 +115,13 @@ DSTATUS SD_status(BYTE lun)
 DRESULT SD_read(BYTE lun, BYTE *buff, DWORD sector, UINT count)
 {
   DRESULT res = RES_OK;
-  
-  if(BSP_SD_ReadBlocks((uint32_t*)buff, 
-                       (uint64_t) (sector * BLOCK_SIZE), 
-                       BLOCK_SIZE, 
+#ifdef SD_USE_DMA
+  if(BSP_SD_ReadBlocks_DMA((uint32_t*)buff,
+#else
+  if(BSP_SD_ReadBlocks((uint32_t*)buff,
+#endif
+                       (uint64_t) (sector * BLOCK_SIZE),
+                       BLOCK_SIZE,
                        count) != MSD_OK)
   {
     res = RES_ERROR;
@@ -135,9 +142,12 @@ DRESULT SD_read(BYTE lun, BYTE *buff, DWORD sector, UINT count)
 DRESULT SD_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count)
 {
   DRESULT res = RES_OK;
-  
-  if(BSP_SD_WriteBlocks((uint32_t*)buff, 
-                        (uint64_t)(sector * BLOCK_SIZE), 
+#ifdef SD_USE_DMA
+  if(BSP_SD_WriteBlocks_DMA((uint32_t*)buff,
+#else
+  if(BSP_SD_WriteBlocks((uint32_t*)buff,
+#endif
+                        (uint64_t)(sector * BLOCK_SIZE),
                         BLOCK_SIZE, count) != MSD_OK)
   {
     res = RES_ERROR;
