@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    system_stm32f7xx.c
+  * @file    Template/system_stm32f7xx.c
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015
