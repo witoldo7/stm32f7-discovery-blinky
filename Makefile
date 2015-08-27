@@ -65,6 +65,7 @@ OS_SUPPORT		= USE_FREERTOS
 
 USE_EMWIN = 1
 
+#USE_USB_HOST = 1
 
 OUTDIR = ./Build
 OBJS= $(SOURCES_C:%.c=$(OUTDIR)/%.o)  $(SOURCES_CPP:%.cpp=$(OUTDIR)/%.o) $(SOURCES_S:%.s=$(OUTDIR)/%.o)
@@ -188,6 +189,37 @@ else
  SOURCES_C += $(EMWIN_PATH)/OS/GUI_X.c
  STATIC_LIB += -l_STemWin528_CM7_GCC
 endif
+endif
+
+################
+# USB Host Library
+################
+USB_HOST_PATH = ./Middlewares/ST/STM32_USB_Host_Library
+
+ifeq ($(USE_USB_HOST),1)
+INCPATHS += \
+	$(USB_HOST_PATH)/Core/Inc
+
+SOURCES_C += \
+	$(USB_HOST_PATH)/Core/Src/usbh_core.c\
+	$(USB_HOST_PATH)/Core/Src/usbh_ctlreq.c\
+	$(USB_HOST_PATH)/Core/Src/usbh_ioreq.c\
+	$(USB_HOST_PATH)/Core/Src/usbh_pipes.c
+
+INCPATHS += \
+	$(USB_HOST_PATH)/Class/AUDIO/Inc\
+	$(USB_HOST_PATH)/Class/CDC/Inc\
+	$(USB_HOST_PATH)/Class/HID/Inc\
+	$(USB_HOST_PATH)/Class/MSC/Inc\
+	$(USB_HOST_PATH)/Class/MTP/Inc
+SOURCES_C += \
+	$(wildcard $(USB_HOST_PATH)/Class/AUDIO/Src/*.c)\
+	$(wildcard $(USB_HOST_PATH)/Class/CDC/Src/*.c)\
+	$(wildcard $(USB_HOST_PATH)/Class/HID/Src/*.c)\
+	$(wildcard $(USB_HOST_PATH)/Class/MSC/Src/*.c)\
+	$(wildcard $(USB_HOST_PATH)/Class/MTP/Src/*.c)
+
+
 endif
 
 ################
