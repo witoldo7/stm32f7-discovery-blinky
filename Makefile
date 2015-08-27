@@ -55,17 +55,19 @@ INSIGHT = $(GDBDIR)/arm-none-eabi-insight
 PROJECT = blinky
 
 # Use FreeRTOS?
-#OS_SUPPORT		= BARE_METAL
-OS_SUPPORT		= USE_FREERTOS
+OS_SUPPORT		= BARE_METAL
+#OS_SUPPORT		= USE_FREERTOS
 
 # Use LwIP?
 #LWIP_SUPPORT	= USE_LWIP
 
-#LOG_SUPPORT = USE_LCD_LOG
+LOG_SUPPORT = USE_LCD_LOG
+
+#USE_FATFS_SD = 1
 
 USE_EMWIN = 1
 
-#USE_USB_HOST = 1
+USE_USB_HOST = 1
 
 OUTDIR = ./Build
 OBJS= $(SOURCES_C:%.c=$(OUTDIR)/%.o)  $(SOURCES_CPP:%.cpp=$(OUTDIR)/%.o) $(SOURCES_S:%.s=$(OUTDIR)/%.o)
@@ -122,10 +124,17 @@ FATFS = ./Middlewares/Third_Party/FatFs/src
 INCLUDES += -I $(FATFS) -I $(FATFS)/drivers
 
 SOURCES_C += \
- $(wildcard $(FATFS)/*.c)				\
+ $(FATFS)/ff_gen_drv.c					\
+ $(FATFS)/ff.c							\
  $(FATFS)/drivers/sd_diskio.c			\
  $(FATFS)/option/unicode.c				\
  $(FATFS)/option/syscall.c
+
+ifeq ($(USE_FATFS_SD),1)
+SOURCES_C += \
+ $(FATFS)/diskio.c				
+endif
+
 
 ifeq ($(OS_SUPPORT),USE_FREERTOS)
 
