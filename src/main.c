@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -56,7 +56,7 @@ int main(void)
 {
   /* Enable the CPU Cache */
   CPU_CACHE_Enable();
-  
+
   /* STM32F7xx HAL library initialization:
        - Configure the Flash ART accelerator on ITCM interface
        - Configure the Systick to generate an interrupt each 1 msec
@@ -64,43 +64,43 @@ int main(void)
        - Low Level Initialization
      */
   HAL_Init();
-  
+
   /* Configure the System clock to have a frequency of 200 Mhz */
   SystemClock_Config();
-    
+
   /* Init Dual Core Application */
   DUAL_InitApplication();
-  
+
   /* Init HS Core */
   USBH_Init(&hUSBHost_HS, USBH_HS_UserProcess, 1);
-  
+
   /* Init FS Core */
   USBH_Init(&hUSBHost_FS, USBH_FS_UserProcess, 0);
-  
+
   /* Add Supported Classes */
-  USBH_RegisterClass(&hUSBHost_HS, USBH_MSC_CLASS);
+  USBH_RegisterClass(&hUSBHost_HS, USBH_HID_CLASS);
   USBH_RegisterClass(&hUSBHost_FS, USBH_HID_CLASS);
-  
+
   /* Start Host Process */
   USBH_Start(&hUSBHost_FS);
   USBH_Start(&hUSBHost_HS);
- 
+
   /* Register the file system object to the FatFs module */
   if(f_mount(&USBH_fatfs, "", 0) != FR_OK)
-  {  
+  {
     LCD_ErrLog("ERROR : Cannot Initialize FatFs! \n");
   }
-  
+
   /* Run Application (Blocking mode)*/
   while (1)
   {
     /* USB Host Background tasks */
-    USBH_Process(&hUSBHost_FS); 
+    USBH_Process(&hUSBHost_FS);
     USBH_Process(&hUSBHost_HS);
-    
+
     /* DUAL Menu Process */
-    DUAL_MenuProcess(); 
-  } 
+    DUAL_MenuProcess();
+  }
 }
 
 /**
@@ -111,33 +111,33 @@ int main(void)
 static void DUAL_InitApplication(void)
 {
   /* Configure Key Button */
-  BSP_PB_Init(BUTTON_TAMPER, BUTTON_MODE_GPIO);                
-  
+  BSP_PB_Init(BUTTON_TAMPER, BUTTON_MODE_GPIO);
+
   /* Configure LED1 */
   BSP_LED_Init(LED1);
-  
+
   /* Initialize the LCD */
   BSP_LCD_Init();
-  
+
   /* LCD Layer Initialization */
-  BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS); 
-  
+  BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS);
+
   /* Selects the LCD Layer */
   BSP_LCD_SelectLayer(1);
-  
+
   /* Enables the display */
   BSP_LCD_DisplayOn();
-  
+
   /* Init the LCD Log module */
   LCD_LOG_Init();
-  
+
   LCD_LOG_SetHeader((uint8_t *)" USB OTG DualCore Host");
-  
-  LCD_UsrLog("USB Host library started.\n"); 
-  
+
+  LCD_UsrLog("USB Host library started.\n");
+
   /* Start DualCore Interface */
   USBH_UsrLog("Initializing hardware....");
-  DUAL_MenuInit(); 
+  DUAL_MenuInit();
 }
 
 /**
@@ -147,21 +147,21 @@ static void DUAL_InitApplication(void)
   * @retval None
   */
 static void USBH_FS_UserProcess(USBH_HandleTypeDef *phost, uint8_t id)
-{  
+{
   switch(id)
-  { 
+  {
   case HOST_USER_SELECT_CONFIGURATION:
     break;
-    
+
   case HOST_USER_DISCONNECTION:
     Appli_FS_state = APPLICATION_FS_DISCONNECT;
-    
+
     break;
-    
+
   case HOST_USER_CLASS_ACTIVE:
     Appli_FS_state = APPLICATION_FS_READY;
     break;
-    
+
   case HOST_USER_CONNECTION:
     Appli_FS_state = APPLICATION_FS_START;
     break;
@@ -175,20 +175,20 @@ static void USBH_FS_UserProcess(USBH_HandleTypeDef *phost, uint8_t id)
   * @retval None
   */
 static void USBH_HS_UserProcess(USBH_HandleTypeDef *phost, uint8_t id)
-{  
+{
   switch(id)
-  { 
+  {
   case HOST_USER_SELECT_CONFIGURATION:
     break;
-    
+
   case HOST_USER_DISCONNECTION:
     Appli_HS_state = APPLICATION_HS_DISCONNECT;
     break;
-    
+
   case HOST_USER_CLASS_ACTIVE:
     Appli_HS_state = APPLICATION_HS_READY;
     break;
-    
+
   case HOST_USER_CONNECTION:
     Appli_HS_state = APPLICATION_HS_START;
     break;
@@ -196,7 +196,7 @@ static void USBH_HS_UserProcess(USBH_HandleTypeDef *phost, uint8_t id)
 }
 
 /**
-  * @brief This function provides accurate delay (in milliseconds) based 
+  * @brief This function provides accurate delay (in milliseconds) based
   *        on SysTick counter flag.
   * @note This function is declared as __weak to be overwritten in case of other
   *       implementations in user file.
@@ -206,9 +206,9 @@ static void USBH_HS_UserProcess(USBH_HandleTypeDef *phost, uint8_t id)
 
 void HAL_Delay(__IO uint32_t Delay)
 {
-  while(Delay) 
+  while(Delay)
   {
-    if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) 
+    if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
     {
       Delay--;
     }
@@ -257,7 +257,7 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
-  
+
   /* Enable HSE Oscillator and activate PLL with HSE as source */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -265,32 +265,32 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 25;
-  RCC_OscInitStruct.PLL.PLLN = 400;  
+  RCC_OscInitStruct.PLL.PLLN = 400;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 8;
   if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
-  
+
   /* Activate the OverDrive to reach the 200 Mhz Frequency */
   if(HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
-  
+
   /* Select PLLSAI output as USB clock source */
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CLK48;
   PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLLSAIP;
   PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
-  PeriphClkInitStruct.PLLSAI.PLLSAIQ = 4; 
+  PeriphClkInitStruct.PLLSAI.PLLSAIQ = 4;
   PeriphClkInitStruct.PLLSAI.PLLSAIP = RCC_PLLSAIP_DIV4;
   if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct)  != HAL_OK)
   {
     Error_Handler();
   }
-  
-  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 
+
+  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
      clocks dividers */
   RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
@@ -339,7 +339,7 @@ static void CPU_CACHE_Enable(void)
   * @retval None
   */
 void assert_failed(uint8_t* file, uint32_t line)
-{ 
+{
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 
