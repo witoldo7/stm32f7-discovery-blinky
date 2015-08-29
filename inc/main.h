@@ -83,6 +83,7 @@ typedef enum {
 extern USBH_HandleTypeDef hUSBHost;
 extern HID_ApplicationTypeDef Appli_state;
 extern HID_MOUSE_Info_TypeDef mouse_info;
+extern HID_PS3_Info_TypeDef   ps3_info;
 extern HID_DEMO_StateMachine hid_demo;
 
 /* Exported constants --------------------------------------------------------*/

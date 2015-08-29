@@ -15,6 +15,7 @@ void HID_PS3MenuProcess(){
 
 void USR_PS3_ProcessData(HID_PS3_Info_TypeDef *data)
 {
-	for(int i=0;i<8;i++) printf("0x%02x ",ps3_report_data[i]);
+	printf("ps: ");
+	for(int i=0;i<2;i++) printf("0x%02x ", data->buttons[i]);
 	printf("\n");
 }

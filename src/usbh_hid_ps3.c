@@ -29,12 +29,26 @@
 #include "usbh_hid_ps3.h"
 #include "usbh_hid_parser.h"
 
+HID_PS3_Info_TypeDef      ps3_info;
 uint32_t                  ps3_report_data[64];
 
 /* Structures defining how to access items in a HID mouse report */
 /* Access button 1 state. */
 static const HID_Report_ItemTypedef prop_b1={
-		(uint8_t *)ps3_report_data+0, /*data*/
+		(uint8_t *)ps3_report_data+2, /*data*/
+		1,     /*size*/
+		0,     /*shift*/
+		0,     /*count (only for array items)*/
+		0,     /*signed?*/
+		0,     /*min value read can return*/
+		1,     /*max value read can return*/
+		0,     /*min value device can report*/
+		1,     /*max value device can report*/
+		1      /*resolution*/
+};
+
+static const HID_Report_ItemTypedef prop_b2={
+		(uint8_t *)ps3_report_data+3, /*data*/
 		1,     /*size*/
 		0,     /*shift*/
 		0,     /*count (only for array items)*/
@@ -61,6 +75,9 @@ const uint8_t OUTPUT_REPORT_BUFFER[] = {
 /**
  * @}
  */
+
+
+static USBH_StatusTypeDef USBH_HID_PS3Decode(USBH_HandleTypeDef *phost);
 
 
 /** @defgroup USBH_HID_PS3_Private_Functions
@@ -126,7 +143,7 @@ USBH_StatusTypeDef USBH_HID_PS3Init(USBH_HandleTypeDef *phost)
 	HID_HandleTypeDef *HID_Handle =  (HID_HandleTypeDef *) phost->pActiveClass->pData;
 	USBH_StatusTypeDef s;
 
-	s = InitializeSIXAXISController(phost);
+	s = SetupSIXAXISController(phost);
 	if( s == USBH_OK ){
 
 		ps3_report_data[0]=0;
@@ -143,7 +160,7 @@ USBH_StatusTypeDef USBH_HID_PS3Init(USBH_HandleTypeDef *phost)
 	return s;
 
 }
-#if 0
+
 /**
  * @brief  USBH_HID_GetPS3Info
  *         The function return mouse information.
@@ -154,14 +171,16 @@ HID_PS3_Info_TypeDef *USBH_HID_GetPS3Info(USBH_HandleTypeDef *phost)
 {
 	if(USBH_HID_PS3Decode(phost)== USBH_OK)
 	{
-		return &mouse_info;
+		ps3_info.buttons[0] = (uint8_t)HID_ReadItem((HID_Report_ItemTypedef *) &prop_b1, 0);
+		ps3_info.buttons[1] = (uint8_t)HID_ReadItem((HID_Report_ItemTypedef *) &prop_b2, 0);
+		return &ps3_info;
 	}
 	else
 	{
 		return NULL;
 	}
 }
-#endif
+
 /**
  * @brief  USBH_HID_PS3Decode
  *         The function decode mouse data.

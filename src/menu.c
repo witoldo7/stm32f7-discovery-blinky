@@ -225,17 +225,17 @@ static void USBH_PS3Demo(USBH_HandleTypeDef *phost)
 {
 
 	HID_PS3_Info_TypeDef *m_pinfo = NULL;
-#if 0
+
 	m_pinfo = USBH_HID_GetPS3Info(phost);
-#endif
+
 	extern uint8_t ps3_report_data[64];
-	for(int i=0;i<8;i++) printf("0x%02x ",ps3_report_data[i]);
+	for(int i=0;i<8;i++) printf("%02x ",ps3_report_data[i]);
 	printf("\n");
 
 	if(m_pinfo != NULL)
 	{
 		/* Handle Mouse data position */
-		//USR_PS3_ProcessData(&ps3_info);
+		USR_PS3_ProcessData(&ps3_info);
 
 	}
 }
