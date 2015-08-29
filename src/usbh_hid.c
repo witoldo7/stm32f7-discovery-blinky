@@ -340,15 +340,25 @@ static USBH_StatusTypeDef USBH_HID_ClassRequest(USBH_HandleTypeDef *phost)
 
 	case HID_REQ_SET_PROTOCOL:
 		/* set protocol */
-		if (USBH_HID_SetProtocol (phost, 0) == USBH_OK){
+		classReqStatus = enable_sixaxis (phost);
+		if (classReqStatus == USBH_OK){
 			HID_Handle->ctl_state = HID_REQ_IDLE;
 
 			/* all requests performed*/
 			phost->pUser(phost, HOST_USER_CLASS_ACTIVE);
 			status = USBH_OK;
 		}
+		else if (classReqStatus == USBH_NOT_SUPPORTED){
+			HID_Handle->ctl_state = HID_REQ_IDLE;
+
+			printf("USBH_HID_SetProtocol returned USBH_NOT_SUPPORTED\n" );
+
+			/* all requests performed*/
+			phost->pUser(phost, HOST_USER_CLASS_ACTIVE);
+			status = USBH_OK;
+		}
 		else{
-			printf("USBH_HID_SetProtocol = %d\n", USBH_HID_SetProtocol (phost, 0) );
+			printf("USBH_HID_SetProtocol returned %d\n", classReqStatus );
 		}
 		break;
 

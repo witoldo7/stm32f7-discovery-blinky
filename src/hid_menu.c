@@ -223,7 +223,8 @@ static void USBH_PS3Demo(USBH_HandleTypeDef *phost)
 	m_pinfo = USBH_HID_GetPS3Info(phost);
 
 	extern uint8_t ps3_report_data[64];
-	printf("0x%02x 0x%02x\n",ps3_report_data[2], ps3_report_data[3]);
+	for(int i=0;i<8;i++) printf("0x%02x ",ps3_report_data[i]);
+	printf("\n");
 
 	if(m_pinfo != NULL)
 	{

@@ -117,9 +117,9 @@ static const HID_Report_ItemTypedef prop_b2={
 
 /* Access button 3 state. */
 static const HID_Report_ItemTypedef prop_b3={
-  (uint8_t *)ps3_report_data+0, /*data*/
+  (uint8_t *)ps3_report_data+2, /*data*/
   1,     /*size*/
-  2,     /*shift*/
+  0,     /*shift*/
   0,     /*count (only for array items)*/
   0,     /*signed?*/
   0,     /*min value read can return*/
@@ -131,7 +131,7 @@ static const HID_Report_ItemTypedef prop_b3={
 
 /* Access x coordinate change. */
 static const HID_Report_ItemTypedef prop_x={
-  (uint8_t *)ps3_report_data+1, /*data*/
+  (uint8_t *)ps3_report_data+3, /*data*/
   8,     /*size*/
   0,     /*shift*/
   0,     /*count (only for array items)*/
@@ -145,7 +145,7 @@ static const HID_Report_ItemTypedef prop_x={
 
 /* Access y coordinate change. */
 static const HID_Report_ItemTypedef prop_y={
-  (uint8_t *)ps3_report_data+2, /*data*/
+  (uint8_t *)ps3_report_data+4, /*data*/
   8,     /*size*/
   0,     /*shift*/
   0,     /*count (only for array items)*/
@@ -166,6 +166,23 @@ static const HID_Report_ItemTypedef prop_y={
 /** @defgroup USBH_HID_MOUSE_Private_Functions
   * @{
   */
+
+USBH_StatusTypeDef enable_sixaxis(USBH_HandleTypeDef *phost) { //Command used to enable the Dualshock 3 and Navigation controller to send data via USB
+	uint8_t cmd_buf[4];
+	cmd_buf[0] = 0x42; // Special PS3 Controller enable commands
+	cmd_buf[1] = 0x0c;
+	cmd_buf[2] = 0x00;
+	cmd_buf[3] = 0x00;
+
+	phost->Control.setup.b.bmRequestType = USB_H2D | USB_REQ_RECIPIENT_INTERFACE | USB_REQ_TYPE_CLASS;
+	phost->Control.setup.b.bRequest = USB_HID_SET_REPORT;
+	phost->Control.setup.b.wValue.bw.msb = 0xF4;
+	phost->Control.setup.b.wValue.bw.lsb = 0x03;
+	phost->Control.setup.b.wIndex.w = 0x00;
+	phost->Control.setup.b.wLength.w = 4;
+
+	return USBH_CtlReq( phost, cmd_buf , 4 );
+}
 
 /**
   * @brief  USBH_HID_PS3Init

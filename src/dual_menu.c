@@ -122,7 +122,7 @@ void DUAL_MenuProcess(void)
       demo.hid_state = APPLI_HID_START;
 
       BSP_LCD_SetTextColor(LCD_COLOR_YELLOW);
-      BSP_LCD_DisplayStringAtLine(4, (uint8_t *)"Mass Storage demo:                                                            ");
+      BSP_LCD_DisplayStringAtLine(4, (uint8_t *)"HID demo:                                                            ");
     }
     else
     {

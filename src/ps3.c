@@ -15,5 +15,6 @@ void HID_PS3MenuProcess(){
 
 void USR_PS3_ProcessData(HID_PS3_Info_TypeDef *data)
 {
-	printf("0x%02x 0x%02x\n",ps3_report_data[2], ps3_report_data[3]);
+	for(int i=0;i<8;i++) printf("0x%02x ",ps3_report_data[i]);
+	printf("\n");
 }
