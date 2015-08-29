@@ -218,19 +218,6 @@ SOURCES_C += \
 	$(USB_HOST_PATH)/Core/Src/usbh_ioreq.c\
 	$(USB_HOST_PATH)/Core/Src/usbh_pipes.c
 
-INCPATHS += \
-	$(USB_HOST_PATH)/Class/AUDIO/Inc\
-	$(USB_HOST_PATH)/Class/CDC/Inc\
-	$(USB_HOST_PATH)/Class/HID/Inc\
-	$(USB_HOST_PATH)/Class/MSC/Inc\
-	$(USB_HOST_PATH)/Class/MTP/Inc
-SOURCES_C += \
-	$(wildcard $(USB_HOST_PATH)/Class/AUDIO/Src/*.c)\
-	$(wildcard $(USB_HOST_PATH)/Class/CDC/Src/*.c)\
-	$(wildcard $(USB_HOST_PATH)/Class/HID/Src/*.c)\
-	$(wildcard $(USB_HOST_PATH)/Class/MSC/Src/*.c)\
-	$(wildcard $(USB_HOST_PATH)/Class/MTP/Src/*.c)
-
 
 endif
 

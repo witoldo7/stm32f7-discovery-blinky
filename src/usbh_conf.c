@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    USB_Host/DualCore_Standalone/Src/usbh_conf.c
+  * @file    USB_Host/HID_Standalone/Src/usbh_conf.c
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015
@@ -29,8 +29,7 @@
 #include "stm32f7xx_hal.h"
 #include "usbh_core.h"
 
-HCD_HandleTypeDef hhcd_FS;
-HCD_HandleTypeDef hhcd_HS;
+HCD_HandleTypeDef hhcd;
 
 /*******************************************************************************
                        HCD BSP Routines
@@ -223,49 +222,48 @@ void HAL_HCD_HC_NotifyURBChange_Callback(HCD_HandleTypeDef *hhcd, uint8_t chnum,
   */
 USBH_StatusTypeDef USBH_LL_Init(USBH_HandleTypeDef *phost)
 {
-  if(phost->id == 0) 
-  {
-    /* Set the LL Driver parameters */
-    hhcd_FS.Instance = USB_OTG_FS;
-    hhcd_FS.Init.Host_channels = 11; 
-    hhcd_FS.Init.dma_enable = 0;
-    hhcd_FS.Init.low_power_enable = 0;
-    hhcd_FS.Init.phy_itface = HCD_PHY_EMBEDDED; 
-    hhcd_FS.Init.Sof_enable = 0;
-    hhcd_FS.Init.speed = HCD_SPEED_FULL;
-    hhcd_FS.Init.vbus_sensing_enable = 0;
-    hhcd_FS.Init.lpm_enable = 0;
-    
-    /* Link the driver to the stack */
-    hhcd_FS.pData = phost;
-    phost->pData = &hhcd_FS;
-    
-    /* Initialize the LL Driver */
-    HAL_HCD_Init(&hhcd_FS);
-  }
-  else /*phost->id == 1*/
-  {
-    /* Set the LL driver parameters */
-    hhcd_HS.Instance = USB_OTG_HS;
-    hhcd_HS.Init.Host_channels = 11; 
-    hhcd_HS.Init.dma_enable = 1;
-    hhcd_HS.Init.low_power_enable = 0;
-    hhcd_HS.Init.phy_itface = HCD_PHY_ULPI;
-    hhcd_HS.Init.Sof_enable = 0;
-    hhcd_HS.Init.speed = HCD_SPEED_HIGH;
-    hhcd_HS.Init.vbus_sensing_enable = 0;
-    hhcd_HS.Init.use_external_vbus = 1;
-    hhcd_HS.Init.lpm_enable = 0;
-    
-    /* Link the driver to the stack */
-    hhcd_HS.pData = phost;
-    phost->pData = &hhcd_HS;
-    
-    /* Initialize the LL driver */
-    HAL_HCD_Init(&hhcd_HS);
-  }
-  USBH_LL_SetTimer (phost, HAL_HCD_GetCurrentFrame(&hhcd_HS));
-  USBH_LL_SetTimer (phost, HAL_HCD_GetCurrentFrame(&hhcd_FS));
+#ifdef USE_USB_FS  
+  /* Set the LL Driver parameters */
+  hhcd.Instance = USB_OTG_FS;
+  hhcd.Init.Host_channels = 11; 
+  hhcd.Init.dma_enable = 0;
+  hhcd.Init.low_power_enable = 0;
+  hhcd.Init.phy_itface = HCD_PHY_EMBEDDED; 
+  hhcd.Init.Sof_enable = 0;
+  hhcd.Init.speed = HCD_SPEED_FULL;
+  hhcd.Init.vbus_sensing_enable = 0;
+  hhcd.Init.lpm_enable = 0;
+  
+  /* Link the driver to the stack */
+  hhcd.pData = phost;
+  phost->pData = &hhcd;
+  
+  /* Initialize the LL Driver */
+  HAL_HCD_Init(&hhcd);
+#endif
+
+#ifdef USE_USB_HS
+  /* Set the LL driver parameters */
+  hhcd.Instance = USB_OTG_HS;
+  hhcd.Init.Host_channels = 11; 
+  hhcd.Init.dma_enable = 1;
+  hhcd.Init.low_power_enable = 0;
+  hhcd.Init.phy_itface = HCD_PHY_ULPI;
+  hhcd.Init.Sof_enable = 0;
+  hhcd.Init.speed = HCD_SPEED_HIGH;
+  hhcd.Init.vbus_sensing_enable = 0;
+  hhcd.Init.use_external_vbus = 1;
+  hhcd.Init.lpm_enable = 0;
+  
+  /* Link the driver to the stack */
+  hhcd.pData = phost;
+  phost->pData = &hhcd;
+  
+  /* Initialize the LL driver */
+  HAL_HCD_Init(&hhcd);
+  
+#endif /*USE_USB_HS*/ 
+  USBH_LL_SetTimer(phost, HAL_HCD_GetCurrentFrame(&hhcd));
   
   return USBH_OK;
 }
@@ -497,27 +495,13 @@ USBH_StatusTypeDef USBH_LL_DriverVBUS(USBH_HandleTypeDef *phost, uint8_t state)
   */
 USBH_StatusTypeDef USBH_LL_SetToggle(USBH_HandleTypeDef *phost, uint8_t pipe, uint8_t toggle)
 {
-  if(phost->id == 0) 
+  if(hhcd.hc[pipe].ep_is_in)
   {
-    if(hhcd_FS.hc[pipe].ep_is_in)
-    {
-      hhcd_FS.hc[pipe].toggle_in = toggle;
-    }
-    else
-    {
-      hhcd_FS.hc[pipe].toggle_out = toggle;
-    }
+    hhcd.hc[pipe].toggle_in = toggle;
   }
   else
   {
-    if(hhcd_HS.hc[pipe].ep_is_in)
-    {
-      hhcd_HS.hc[pipe].toggle_in = toggle;
-    }
-    else
-    {
-      hhcd_HS.hc[pipe].toggle_out = toggle;
-    }
+    hhcd.hc[pipe].toggle_out = toggle;
   }
   return USBH_OK; 
 }
@@ -531,27 +515,14 @@ USBH_StatusTypeDef USBH_LL_SetToggle(USBH_HandleTypeDef *phost, uint8_t pipe, ui
 uint8_t USBH_LL_GetToggle(USBH_HandleTypeDef *phost, uint8_t pipe)
 {
   uint8_t toggle = 0;
-  if(phost->id == 0) 
+  
+  if(hhcd.hc[pipe].ep_is_in)
   {
-    if(hhcd_FS.hc[pipe].ep_is_in)
-    {
-      toggle = hhcd_FS.hc[pipe].toggle_in;
-    }
-    else
-    {
-      toggle = hhcd_FS.hc[pipe].toggle_out;
-    } 
+    toggle = hhcd.hc[pipe].toggle_in;
   }
   else
   {
-    if(hhcd_HS.hc[pipe].ep_is_in)
-    {
-      toggle = hhcd_HS.hc[pipe].toggle_in;
-    }
-    else
-    {
-      toggle = hhcd_HS.hc[pipe].toggle_out;
-    }
+    toggle = hhcd.hc[pipe].toggle_out;
   }
   return toggle; 
 }

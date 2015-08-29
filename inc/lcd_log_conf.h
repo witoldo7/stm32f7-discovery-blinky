@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    USB_Host/DualCore_Standalone/Inc/lcd_log_conf.h
+  * @file    USB_Host/HID_Standalone/Inc/lcd_log_conf.h
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015

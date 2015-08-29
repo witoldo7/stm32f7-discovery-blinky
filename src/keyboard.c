@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    USB_Host/DualCore_Standalone/Src/keyboard.c 
+  * @file    USB_Host/HID_Standalone/Src/keyboard.c 
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015
@@ -39,6 +39,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+extern HID_DEMO_StateMachine hid_demo;
 uint8_t KeybrdCharXpos = 0;
 uint16_t KeybrdCharYpos = 0;
 
@@ -48,27 +49,27 @@ static void USR_KEYBRD_Init(void);
 /* Private functions ---------------------------------------------------------*/
 
 /**
-  * @brief  Manages Keyboard Menu Process.
+  * @brief  Manages Keyboard Menu Process.  
   * @param  None
   * @retval None
   */
 void HID_KeyboardMenuProcess(void)
 {
-  USR_KEYBRD_Init();
+  USR_KEYBRD_Init();   
 }
 
 /**
-  * @brief  Init Keyboard window.
+  * @brief  Init Keyboard window.     
   * @param  None
   * @retval None
   */
-static void  USR_KEYBRD_Init(void)
+static void USR_KEYBRD_Init(void)
 {
   LCD_LOG_ClearTextZone();
   BSP_LCD_SetTextColor(LCD_COLOR_YELLOW);
   
-  BSP_LCD_DisplayStringAtLine(4, (uint8_t *)"Use Keyboard to tape characters:                                                            "); 
-  BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+  BSP_LCD_DisplayStringAtLine(4, (uint8_t *)"Use Keyboard to tape characters:                                                            ");
+  BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
   
   KeybrdCharXpos = KYBRD_FIRST_LINE;
   KeybrdCharYpos = KYBRD_FIRST_COLUMN;
@@ -87,6 +88,7 @@ void USR_KEYBRD_ProcessData(uint8_t data)
     
     /* Increment char X position */
     KeybrdCharXpos += SMALL_FONT_LINE_WIDTH;
+    
     if(KeybrdCharXpos > KYBRD_LAST_LINE)
     {
       LCD_LOG_ClearTextZone();
@@ -112,7 +114,7 @@ void USR_KEYBRD_ProcessData(uint8_t data)
     }
     else
     {
-      KeybrdCharYpos += SMALL_FONT_COLUMN_WIDTH;
+      KeybrdCharYpos += SMALL_FONT_COLUMN_WIDTH;      
     } 
     BSP_LCD_DisplayChar(KeybrdCharYpos, KeybrdCharXpos, ' '); 
   }
@@ -131,15 +133,16 @@ void USR_KEYBRD_ProcessData(uint8_t data)
       
       /* Increment char X position */
       KeybrdCharXpos += SMALL_FONT_LINE_WIDTH;
-      
-      if(KeybrdCharXpos > KYBRD_LAST_LINE)
-      {
-        LCD_LOG_ClearTextZone();
-        KeybrdCharXpos = KYBRD_FIRST_LINE;
-        /* Start New Display of the cursor position on LCD */
-        BSP_LCD_DisplayChar(KeybrdCharYpos,KeybrdCharXpos, data);  
-      }
     }
-  }               
-}
+    
+    if(KeybrdCharXpos > KYBRD_LAST_LINE)
+    {
+      LCD_LOG_ClearTextZone();
+      KeybrdCharXpos = KYBRD_FIRST_LINE;
+      /* Start New Display of the cursor position on LCD */
+      BSP_LCD_DisplayChar(KeybrdCharYpos,KeybrdCharXpos, data);  
+    }
+  }
+}               
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

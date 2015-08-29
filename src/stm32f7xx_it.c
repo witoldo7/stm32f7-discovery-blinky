@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    USB_Host/DualCore_Standalone/Src/stm32f7xx_it.c 
+  * @file    USB_Host/HID_Standalone/Src/stm32f7xx_it.c 
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015
@@ -34,8 +34,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-extern HCD_HandleTypeDef hhcd_FS;
-extern HCD_HandleTypeDef hhcd_HS;
+extern HCD_HandleTypeDef hhcd;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -139,7 +138,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  HAL_IncTick();
+  HAL_IncTick(); 
   Toggle_Leds();
 }
 
@@ -151,23 +150,17 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief  This function handles USB-On-The-Go FS global interrupt request.
+  * @brief  This function handles USB-On-The-Go FS/HS global interrupt request.
   * @param  None
   * @retval None
   */
+#ifdef USE_USB_FS
 void OTG_FS_IRQHandler(void)
-{
-  HAL_HCD_IRQHandler(&hhcd_FS);
-}
-
-/**
-  * @brief  This function handles USB-On-The-Go HS global interrupt request.
-  * @param  None
-  * @retval None
-  */
+#else
 void OTG_HS_IRQHandler(void)
+#endif
 {
-  HAL_HCD_IRQHandler(&hhcd_HS);
+  HAL_HCD_IRQHandler(&hhcd);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

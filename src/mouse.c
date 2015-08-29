@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    USB_Host/DualCore_Standalone/Src/mouse.c 
+  * @file    USB_Host/HID_Standalone/Src/mouse.c 
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015
@@ -98,7 +98,7 @@ static void USR_MOUSE_Init(void)
 {
   LCD_LOG_ClearTextZone();
   BSP_LCD_SetTextColor(LCD_COLOR_YELLOW);
-  BSP_LCD_DisplayStringAtLine(4, (uint8_t *)"USB HID Host Mouse Demo...                     ");  
+  BSP_LCD_DisplayStringAtLine(4, (uint8_t *)"USB HID Host Mouse Demo...                     ");
   BSP_LCD_SetTextColor(LCD_LOG_DEFAULT_COLOR);
   
   /* Display Mouse Window */
@@ -142,7 +142,7 @@ static void HID_MOUSE_UpdatePosition(int8_t x, int8_t y)
   {
     x_loc += x/2;
     y_loc += y/10;
-
+    
     if(y_loc > MOUSE_WINDOW_HEIGHT - 12)
     {
       y_loc = MOUSE_WINDOW_HEIGHT - 12;

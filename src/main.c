@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    USB_Host/DualCore_Standalone/Src/main.c
+  * @file    USB_Host/HID_Standalone/Src/main.c
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015
-  * @brief   USB host Dual core HID and MSC demo main file
+  * @brief   USB host HID Mouse and Keyboard demo main file
   ******************************************************************************
   * @attention
   *
@@ -32,18 +32,15 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-USBH_HandleTypeDef hUSBHost_FS;
-USBH_HandleTypeDef hUSBHost_HS;
-DUAL_ApplicationTypeDef Appli_FS_state = APPLICATION_IDLE;
-DUAL_ApplicationTypeDef Appli_HS_state = APPLICATION_IDLE;
+USBH_HandleTypeDef hUSBHost;
+HID_ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void Error_Handler(void);
 static void CPU_CACHE_Enable(void);
-static void USBH_HS_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
-static void USBH_FS_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
-static void DUAL_InitApplication(void);
+static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
+static void HID_InitApplication(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -65,53 +62,41 @@ int main(void)
      */
   HAL_Init();
   
-  /* Configure the System clock to have a frequency of 200 Mhz */
+  /* Configure the System clock to have a frequency of 200 MHz */
   SystemClock_Config();
     
-  /* Init Dual Core Application */
-  DUAL_InitApplication();
+  /* Init HID Application */
+  HID_InitApplication();
   
-  /* Init HS Core */
-  USBH_Init(&hUSBHost_HS, USBH_HS_UserProcess, 1);
+  /* Init Host Library */
+  USBH_Init(&hUSBHost, USBH_UserProcess, 0);
   
-  /* Init FS Core */
-  USBH_Init(&hUSBHost_FS, USBH_FS_UserProcess, 0);
-  
-  /* Add Supported Classes */
-  USBH_RegisterClass(&hUSBHost_HS, USBH_MSC_CLASS);
-  USBH_RegisterClass(&hUSBHost_FS, USBH_HID_CLASS);
+  /* Add Supported Class */
+  USBH_RegisterClass(&hUSBHost, USBH_HID_CLASS);
   
   /* Start Host Process */
-  USBH_Start(&hUSBHost_FS);
-  USBH_Start(&hUSBHost_HS);
- 
-  /* Register the file system object to the FatFs module */
-  if(f_mount(&USBH_fatfs, "", 0) != FR_OK)
-  {  
-    LCD_ErrLog("ERROR : Cannot Initialize FatFs! \n");
-  }
+  USBH_Start(&hUSBHost);
   
-  /* Run Application (Blocking mode)*/
+  /* Run Application (Blocking mode) */
   while (1)
   {
-    /* USB Host Background tasks */
-    USBH_Process(&hUSBHost_FS); 
-    USBH_Process(&hUSBHost_HS);
-    
-    /* DUAL Menu Process */
-    DUAL_MenuProcess(); 
-  } 
+    /* USB Host Background task */
+    USBH_Process(&hUSBHost); 
+     
+    /* HID Menu Process */
+    HID_MenuProcess();
+  }
 }
 
 /**
-  * @brief  DUALCORE application Init.
+  * @brief  HID application Init
   * @param  None
   * @retval None
   */
-static void DUAL_InitApplication(void)
+static void HID_InitApplication(void)
 {
-  /* Configure Key Button */
-  BSP_PB_Init(BUTTON_TAMPER, BUTTON_MODE_GPIO);                
+  /* Configure Key button */
+  BSP_PB_Init(BUTTON_TAMPER, BUTTON_MODE_GPIO);
   
   /* Configure LED1 */
   BSP_LED_Init(LED1);
@@ -122,76 +107,54 @@ static void DUAL_InitApplication(void)
   /* LCD Layer Initialization */
   BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS); 
   
-  /* Selects the LCD Layer */
+  /* Select the LCD Layer */
   BSP_LCD_SelectLayer(1);
   
-  /* Enables the display */
+  /* Enable the display */
   BSP_LCD_DisplayOn();
   
   /* Init the LCD Log module */
   LCD_LOG_Init();
-  
-  LCD_LOG_SetHeader((uint8_t *)" USB OTG DualCore Host");
+    
+#ifdef USE_USB_HS 
+  LCD_LOG_SetHeader((uint8_t *)" USB OTG HS HID Host");
+#else
+  LCD_LOG_SetHeader((uint8_t *)" USB OTG FS HID Host");
+#endif
   
   LCD_UsrLog("USB Host library started.\n"); 
   
-  /* Start DualCore Interface */
-  USBH_UsrLog("Initializing hardware....");
-  DUAL_MenuInit(); 
+  /* Start HID Interface */
+  HID_MenuInit();
 }
 
 /**
   * @brief  User Process
-  * @param  phost: Host FS Handle
+  * @param  phost: Host Handle
   * @param  id: Host Library user message ID
   * @retval None
   */
-static void USBH_FS_UserProcess(USBH_HandleTypeDef *phost, uint8_t id)
-{  
+static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id)
+{
   switch(id)
   { 
   case HOST_USER_SELECT_CONFIGURATION:
     break;
     
   case HOST_USER_DISCONNECTION:
-    Appli_FS_state = APPLICATION_FS_DISCONNECT;
-    
+    Appli_state = APPLICATION_DISCONNECT;
     break;
     
   case HOST_USER_CLASS_ACTIVE:
-    Appli_FS_state = APPLICATION_FS_READY;
+    Appli_state = APPLICATION_READY;
     break;
     
   case HOST_USER_CONNECTION:
-    Appli_FS_state = APPLICATION_FS_START;
-    break;
-  }
-}
-
-/**
-  * @brief  User Process
-  * @param  phost: Host HS Handle
-  * @param  id: Host Library user message ID
-  * @retval None
-  */
-static void USBH_HS_UserProcess(USBH_HandleTypeDef *phost, uint8_t id)
-{  
-  switch(id)
-  { 
-  case HOST_USER_SELECT_CONFIGURATION:
+    Appli_state = APPLICATION_START;
     break;
     
-  case HOST_USER_DISCONNECTION:
-    Appli_HS_state = APPLICATION_HS_DISCONNECT;
-    break;
-    
-  case HOST_USER_CLASS_ACTIVE:
-    Appli_HS_state = APPLICATION_HS_READY;
-    break;
-    
-  case HOST_USER_CONNECTION:
-    Appli_HS_state = APPLICATION_HS_START;
-    break;
+  default:
+    break; 
   }
 }
 
