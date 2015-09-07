@@ -1,10 +1,12 @@
 /**
   ******************************************************************************
-  * @file    stm32f7xx_hal_conf.h
+  * @file    stm32f7xx_hal_conf_template.h
   * @author  MCD Application Team
   * @version V1.0.1
   * @date    25-June-2015
-  * @brief   HAL configuration file.
+  * @brief   HAL configuration template file.
+  *          This file should be copied to the application folder and renamed
+  *          to stm32f7xx_hal_conf.h.
   ******************************************************************************
   * @attention
   *
@@ -93,13 +95,6 @@
 #define HAL_HCD_MODULE_ENABLED
 
 
-/* ########################## Timeout Configuration ######################### */
-/**
-  * @brief This is the HAL configuration section
-  */
-#define HAL_ACCURATE_TIMEOUT_ENABLED   0
-#define HAL_TIMEOUT_VALUE              0x1FFFFFF
-
 /* ########################## HSE/HSI Values adaptation ##################### */
 /**
   * @brief Adjust the value of External High Speed oscillator (HSE) used in your application.
@@ -127,7 +122,7 @@
   * @brief Internal Low Speed oscillator (LSI) value.
   */
 #if !defined  (LSI_VALUE)
- #define LSI_VALUE  ((uint32_t)32000)
+ #define LSI_VALUE  ((uint32_t)32000)       /*!< LSI Typical Value in Hz*/
 #endif /* LSI_VALUE */                      /*!< Value of the Internal Low Speed oscillator in Hz
                                              The real value may vary depending on the variations
                                              in voltage and temperature.  */
@@ -157,6 +152,7 @@
 #define  VDD_VALUE                    ((uint32_t)3300) /*!< Value of VDD in mv */
 #define  TICK_INT_PRIORITY            ((uint32_t)0x0F) /*!< tick interrupt priority */
 #define  USE_RTOS                     0
+#define  PREFETCH_ENABLE              1
 #define  ART_ACCLERATOR_ENABLE        1 /* To enable instruction cache and prefetch */
 
 /* ########################## Assert Selection ############################## */
@@ -172,7 +168,7 @@
 
 /* MAC ADDRESS: MAC_ADDR0:MAC_ADDR1:MAC_ADDR2:MAC_ADDR3:MAC_ADDR4:MAC_ADDR5 */
 #define MAC_ADDR0   2
-#define MAC_ADDR1   1
+#define MAC_ADDR1   0
 #define MAC_ADDR2   0
 #define MAC_ADDR3   0
 #define MAC_ADDR4   0
@@ -181,16 +177,17 @@
 /* Definition of the Ethernet driver buffers size and count */
 #define ETH_RX_BUF_SIZE                ETH_MAX_PACKET_SIZE /* buffer size for receive               */
 #define ETH_TX_BUF_SIZE                ETH_MAX_PACKET_SIZE /* buffer size for transmit              */
-#define ETH_RXBUFNB                    ((uint32_t)5)       /* 5 Rx buffers of size ETH_RX_BUF_SIZE  */
-#define ETH_TXBUFNB                    ((uint32_t)5)       /* 5 Tx buffers of size ETH_TX_BUF_SIZE  */
+#define ETH_RXBUFNB                    ((uint32_t)4)       /* 4 Rx buffers of size ETH_RX_BUF_SIZE  */
+#define ETH_TXBUFNB                    ((uint32_t)4)       /* 4 Tx buffers of size ETH_TX_BUF_SIZE  */
 
 /* Section 2: PHY configuration section */
-/* LAN8742A PHY Address*/
-#define LAN8742A_PHY_ADDRESS            0x00
+
+/* DP83848 PHY Address*/
+#define DP83848_PHY_ADDRESS             0x01
 /* PHY Reset delay these values are based on a 1 ms Systick interrupt*/
-#define PHY_RESET_DELAY                 ((uint32_t)0x00000FFF)
+#define PHY_RESET_DELAY                 ((uint32_t)0x000000FF)
 /* PHY Configuration delay */
-#define PHY_CONFIG_DELAY                ((uint32_t)0x00000FFFF)
+#define PHY_CONFIG_DELAY                ((uint32_t)0x00000FFF)
 
 #define PHY_READ_TO                     ((uint32_t)0x0000FFFF)
 #define PHY_WRITE_TO                    ((uint32_t)0x0000FFFF)
@@ -396,6 +393,11 @@
  #include "stm32f7xx_hal_hcd.h"
 #endif /* HAL_HCD_MODULE_ENABLED */
 
+/* Nemui Added */
+/* Clear The Peripheral Instances and Structs */
+#define HAL_CLR_STRUCT(handle)	memset((void*)&handle,0, sizeof(handle));
+/* Nemui Added */
+
 /* Exported macro ------------------------------------------------------------*/
 #ifdef  USE_FULL_ASSERT
 /**
@@ -413,13 +415,6 @@
   #define assert_param(expr) ((void)0)
 #endif /* USE_FULL_ASSERT */
 
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 #ifdef __cplusplus
 }

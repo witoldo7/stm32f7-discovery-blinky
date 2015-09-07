@@ -1,11 +1,18 @@
 
-#include "stm32746g_discovery.h"
+#include "hw_config.h"
 
 int main(void)
 {
-    int i = 0;
+	/* Set Basis System(includes SYSTICK Setings) */
+	Set_System();
+
+    /* Set UART and redirect to stdio */
+    conio_init(UART_DEFAULT_NUM,UART_BAUDRATE);
 
     BSP_LED_Init(LED_GREEN);
+
+
+	int i = 0;
 
     for(;;)
     {
