@@ -10,9 +10,9 @@
 
 #ifndef IMG_NO_DATA
 #if defined ( __ICCARM__ )
-#pragma location = ".textqspi"
+#pragma location = ".qspirom"
 #else
-__attribute__((section(".textqspi")))
+__attribute__((section(".qspirom")))
 #endif
 const unsigned char img4[261120] =
 {
