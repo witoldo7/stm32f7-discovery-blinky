@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    FatFs/FatFs_uSD_RTOS/Src/main.c 
+  * @file    FatFs/FatFs_uSD_RTOS/Src/main.c
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    25-June-2015
@@ -18,8 +18,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -32,9 +32,14 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+ #define __ATTR_MEM		__attribute__ ((section(".dtcm"))) __attribute__ ((aligned (4)))
+ #define __ATTR_FATFS	__attribute__ ((section(".dtcm"))) __attribute__ ((aligned (4)))
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-FATFS SDFatFs;  /* File system object for SD card logical drive */
+FATFS SDFatFs 		__ATTR_FATFS;		/* File system object for SD card logical drive */
+uint8_t buff[100]	__ATTR_MEM;			/* File read buffer */
+
 FIL MyFile;     /* File object */
 char SDPath[4]; /* SD card logical drive path */
 
@@ -63,17 +68,17 @@ int main(void)
        - Global MSP (MCU Support Package) initialization
      */
   HAL_Init();
-  
+
   /* Configure the system clock to 216 MHz */
   SystemClock_Config();
-  
+
   /* Configure LED1 */
   BSP_LED_Init(LED1);
-  
+
   /*##-1- Start task #########################################################*/
   osThreadDef(uSDThread, StartThread, osPriorityNormal, 0, 8 * configMINIMAL_STACK_SIZE);
   osThreadCreate(osThread(uSDThread), NULL);
-  
+
   /*##-2- Start scheduler ####################################################*/
   osKernelStart();
 
@@ -91,11 +96,10 @@ static void StartThread(void const *argument)
   FRESULT res;                                          /* FatFs function common result code */
   uint32_t byteswritten, bytesread;                     /* File write/read counts */
   uint8_t wtext[] = "This is STM32 working with FatFs"; /* File write buffer */
-  uint8_t rtext[100];                                   /* File read buffer */
-  
+
   /*##-1- Link the micro SD disk I/O driver ##################################*/
   if(FATFS_LinkDriver(&SD_Driver, SDPath) == 0)
-  {  
+  {
     /*##-2- Register the file system object to the FatFs module ##############*/
     if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) != FR_OK)
     {
@@ -123,7 +127,7 @@ static void StartThread(void const *argument)
         {
           /*##-5- Write data to the text file ################################*/
           res = f_write(&MyFile, wtext, sizeof(wtext), (void *)&byteswritten);
-          
+
           if((byteswritten == 0) || (res != FR_OK))
           {
             /* 'STM32.TXT' file Write or EOF Error */
@@ -133,7 +137,7 @@ static void StartThread(void const *argument)
           {
             /*##-6- Close the open text file #################################*/
             f_close(&MyFile);
-            
+
             /*##-7- Open the text file object with read access ###############*/
             if(f_open(&MyFile, "STM32.TXT", FA_READ) != FR_OK)
             {
@@ -143,8 +147,8 @@ static void StartThread(void const *argument)
             else
             {
               /*##-8- Read data from the text file ###########################*/
-              res = f_read(&MyFile, rtext, sizeof(rtext), (UINT*)&bytesread);
-              
+              res = f_read(&MyFile, buff, sizeof(buff), (UINT*)&bytesread);
+
               if((bytesread == 0) || (res != FR_OK))
               {
                 /* 'STM32.TXT' file Read or EOF Error */
@@ -154,10 +158,10 @@ static void StartThread(void const *argument)
               {
                 /*##-9- Close the open text file #############################*/
                 f_close(&MyFile);
-                
+
                 /*##-10- Compare read data with the expected data ############*/
                 if ((bytesread != byteswritten))
-                {                
+                {
                   /* Read data is different from the expected data */
                   Error_Handler();
                 }
@@ -173,10 +177,10 @@ static void StartThread(void const *argument)
       }
     }
   }
-  
+
   /*##-11- Unlink the micro SD disk I/O driver ###############################*/
   FATFS_UnLinkDriver(SDPath);
-  
+
   /* Infinite Loop */
   for( ;; )
   {
@@ -185,7 +189,7 @@ static void StartThread(void const *argument)
 
 /**
   * @brief  System Clock Configuration
-  *         The system Clock is configured as follow : 
+  *         The system Clock is configured as follow :
   *            System Clock source            = PLL (HSE)
   *            SYSCLK(Hz)                     = 216000000
   *            HCLK(Hz)                       = 216000000
@@ -215,35 +219,35 @@ static void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 25;
-  RCC_OscInitStruct.PLL.PLLN = 432;  
+  RCC_OscInitStruct.PLL.PLLN = 432;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 9;
-  
+
   ret = HAL_RCC_OscConfig(&RCC_OscInitStruct);
   if(ret != HAL_OK)
   {
     while(1) { ; }
   }
-  
-  /* Activate the OverDrive to reach the 216 MHz Frequency */  
+
+  /* Activate the OverDrive to reach the 216 MHz Frequency */
   ret = HAL_PWREx_EnableOverDrive();
   if(ret != HAL_OK)
   {
     while(1) { ; }
   }
-  
+
   /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 clocks dividers */
   RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;  
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2; 
-  
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+
   ret = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7);
   if(ret != HAL_OK)
   {
     while(1) { ; }
-  }  
+  }
 }
 
 /**
@@ -271,7 +275,7 @@ static void Error_Handler(void)
   * @retval None
   */
 void assert_failed(uint8_t* file, uint32_t line)
-{ 
+{
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 
@@ -280,7 +284,7 @@ void assert_failed(uint8_t* file, uint32_t line)
   {
   }
 }
-#endif /* USE_FULL_ASSERT */ 
+#endif /* USE_FULL_ASSERT */
 
 /**
   * @brief  CPU L1-Cache enable.
