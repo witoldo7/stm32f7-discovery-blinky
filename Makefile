@@ -76,8 +76,8 @@ DEPS= $(SOURCES_C:%.c=$(OUTDIR)/%.d) $(SOURCES_CPP:$(OUTDIR)/%.cpp=%.d)
 SOURCES_S = Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/gcc/startup_stm32f746xx.s
 
 SOURCES_C = $(wildcard src/*.c)
-SOURCES_C += sys/_sbrk.c
-SOURCES_C += sys/stubs.c
+SOURCES_C += sys/syscalls.c
+
 #SOURCES_C += Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/system_stm32f7xx.c
 SOURCES_C += $(wildcard Drivers/BSP/STM32746G-Discovery/*.c)
 SOURCES_C += $(wildcard Drivers/STM32F7xx_HAL_Driver/Src/*.c)
@@ -103,7 +103,7 @@ INCLUDES += -I Drivers/BSP/STM32746G-Discovery
 
 INCLUDES += $(addprefix -I ,$(INCPATHS))
 
-DEFINES = -DSTM32 -DSTM32F7 -DSTM32F746xx -DSTM32F746NGHx -DSTM32F746G_DISCO -DUSE_STM32746G_DISCOVERY
+DEFINES = -DSTM32 -DSTM32F7 -DSTM32F746xx -DSTM32F746NGHx -DSTM32F746G_DISCO -DUSE_STM32746G_DISCOVERY -DUSE_HAL_DRIVER
 
 ifeq ($(OS_SUPPORT),USE_FREERTOS)
 DEFINES += -D$(OS_SUPPORT)
@@ -112,8 +112,6 @@ endif
 ifeq ($(LOG_SUPPORT),USE_LCD_LOG)
  INCPATHS  += Utilities/Log
  SOURCES_C += Utilities/Log/lcd_log.c
-else
- SOURCES_C += sys/_io.c
 endif
 
 FATFS = ./Middlewares/Third_Party/FatFs/src
@@ -232,7 +230,7 @@ CFLAGS += $(DEFINES) $(MCUFLAGS) $(DEBUG_FLAGS) $(CFLAGS_EXTRA) $(INCLUDES)
 LDFLAGS = -static $(MCUFLAGS)
 LDFLAGS += -Wl,--start-group -lgcc -lm -lc -lg -lstdc++ -lsupc++ -Wl,--end-group
 LDFLAGS += -Wl,--gc-sections
-LDFLAGS += -T stm32f7-discovery.ld -L. -Lldscripts
+LDFLAGS += -T STM32F746NGH6_AXIM.ld -L. -Lldscripts
 LDFLAGS += -Xlinker -Map -Xlinker $(PROJECT).map
 LDFLAGS += $(LIBRARY_DIRS)
 
