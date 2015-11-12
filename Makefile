@@ -7,10 +7,11 @@
 
 # Toolchain prefix (i.e arm-none-eabi -> arm-none-eabi-gcc.exe)
 ifneq (,$(filter $(shell uname),Darwin Linux))
-TCHAIN  = /usr/local/arm-cs-tools/bin/arm-none-eabi
+TCHAIN  = /usr/bin/arm-none-eabi
 else
 TCHAIN  = "$(GNU_ARM_PATH)/bin/arm-none-eabi"
 endif
+
 
 # Development Tools based on GNU Compiler Collection
 DEVTOOL = LAUNCHPAD
@@ -21,7 +22,7 @@ DEVTOOL = LAUNCHPAD
 
 # Check BuildTools
 ifeq ($(DEVTOOL),LAUNCHPAD)
- TOOLDIR = C:/Devz/ARM/Launchpad
+ TOOLDIR = /usr/bin/
  NANOLIB = --specs=nano.specs
  NANOLIB += -u _printf_float
  NANOLIB += -u _scanf_float
@@ -42,15 +43,8 @@ else
  $(error SET BUILD-TOOLS AT FIRST!!)
 endif
 
-#Set DFUse Directory
-DFUDIR	= C:/Devz/ARM/ST/DFUse/BIN
 #Set Shell Definitions
-WSHELL  = cmd
 MSGECHO = echo
-#Set GDB/Insight Directory
-GDBDIR  = C:/Devz/ARM/insight/bin
-INSIGHT = $(GDBDIR)/arm-none-eabi-insight
-# Environment Dependent!!!
 
 PROJECT = blinky
 
@@ -290,7 +284,7 @@ endif
 flash :
 ifneq (,$(filter $(shell uname),Darwin Linux))
 	@echo "Writing $(TARGET).bin"
-	@st-flash --reset write $(TARGET).bin 0x08000000
+	@st-flash --reset write $(PROJECT).bin 0x08000000
 else
 	@"$(STLINK_PATH)/ST-LINK_CLI.exe" -c SWD UR -P $(PROJECT).hex 0x08000000
 	@"$(STLINK_PATH)/ST-LINK_CLI.exe" -c SWD UR -Rst
