@@ -39,9 +39,9 @@
 #include "main.h"
 #include "WM.h"
 #include "hw_config.h"
-
+#include <math.h>
 #include "cmsis_os.h"
-
+#include "GRAPH.h"
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -136,7 +136,7 @@ int main(void)
 	GUI_Initialized = 1;
 
 	/* Activate the use of memory device feature */
-	//WM_SetCreateFlags(WM_CF_MEMDEV);
+	WM_SetCreateFlags(WM_CF_MEMDEV);
 
 	osThreadDef(GUI_Thread, GUIThread, osPriorityNormal, 0, 2048);
 	osThreadCreate(osThread(GUI_Thread), NULL);
@@ -203,17 +203,13 @@ void TOUCHThread(void const *n)
 }
 
 void GUIThread(void const *n) {
-
+       	GUI_SelectLayer(0);
+        WM_HWIN hWin = CreateWindow();
+        GUI_Clear();
+        GUI_Delay(1000);
 	while(1){
-		GUI_SelectLayer(0);
-
-		WM_HWIN hWin = CreateWindow();
-		GUI_ExecCreatedDialog(hWin);
-
-		GUI_Clear();
-		GUI_Delay(1000);
+            
 	}
-
 }
 
 /**
